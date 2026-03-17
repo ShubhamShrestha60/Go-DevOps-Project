@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devpulse
+  labels:
+    app: devpulse
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: devpulse
+  template:
+    metadata:
+      labels:
+        app: devpulse
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      containers:
+      - name: devpulse
+        image: devpulse:latest
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: devpulse-config
+        - secretRef:
+            name: devpulse-secrets
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devpulse
+spec:
+  selector:
+    app: devpulse
+  ports:
+  - port: 80
+    targetPort: 8080
+  type: ClusterIP

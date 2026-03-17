@@ -1,0 +1,12 @@
+.git
+.env
+bin/
+vendor/
+docker-compose.yml
+k8s/
+helm/
+monitoring/
+.github/
+README.md
+Makefile
+*.log

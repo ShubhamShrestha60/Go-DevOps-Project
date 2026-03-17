@@ -1,0 +1,65 @@
+{{define "content"}}
+<div class="stats-grid">
+    <div class="glass glass-card stat-card">
+        <span class="stat-label">Active Projects</span>
+        <span class="stat-value">12</span>
+        <div style="color: var(--success); font-size: 12px">
+            <i class="fas fa-arrow-up"></i> 8% from last month
+        </div>
+    </div>
+    <div class="glass glass-card stat-card">
+        <span class="stat-label">Pending Tasks</span>
+        <span class="stat-value">48</span>
+        <div style="color: var(--warning); font-size: 12px">
+            <i class="fas fa-clock"></i> 5 urgent
+        </div>
+    </div>
+    <div class="glass glass-card stat-card">
+        <span class="stat-label">Team Members</span>
+        <span class="stat-value">24</span>
+        <div style="color: var(--primary); font-size: 12px">
+            <i class="fas fa-users"></i> 2 new this week
+        </div>
+    </div>
+    <div class="glass glass-card stat-card">
+        <span class="stat-label">Completion Rate</span>
+        <span class="stat-value">84%</span>
+        <div style="color: var(--success); font-size: 12px">
+            <i class="fas fa-check-circle"></i> On track
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px">
+    <div class="glass glass-card">
+        <h3>Recent Activity</h3>
+        <div style="margin-top: 20px">
+            <div style="display: flex; gap: 16px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--glass-border)">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div>
+                    <p style="font-weight: 500">New Task Created</p>
+                    <p style="font-size: 14px; color: var(--text-muted)">Project: Apollo Sync - "Implement API Caching"</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px">2 hours ago</p>
+                </div>
+            </div>
+            <!-- More activity items placeholder -->
+        </div>
+    </div>
+
+    <div class="glass glass-card">
+        <h3>Upcoming Deadlines</h3>
+        <div style="margin-top: 20px">
+            <div style="background: rgba(239, 68, 68, 0.1); padding: 12px; border-radius: 10px; border-left: 4px solid var(--danger); margin-bottom: 12px">
+                <p style="font-weight: 600; font-size: 14px">Backend Migration</p>
+                <p style="font-size: 12px">Due Today, 5:00 PM</p>
+            </div>
+            <div style="background: rgba(245, 158, 11, 0.1); padding: 12px; border-radius: 10px; border-left: 4px solid var(--warning)">
+                <p style="font-weight: 600; font-size: 14px">Design Feedback</p>
+                <p style="font-size: 12px">Due Tomorrow</p>
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}

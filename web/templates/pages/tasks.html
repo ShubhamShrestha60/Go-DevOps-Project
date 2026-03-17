@@ -1,0 +1,61 @@
+{{define "content"}}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px">
+    <h2>Task Board</h2>
+    <div style="display: flex; gap: 12px">
+        <select class="form-control" style="width: 200px">
+            <option>All Projects</option>
+            <option>Project Apollo</option>
+        </select>
+        <button class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Task
+        </button>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px">
+    <!-- Kanban Columns -->
+    <div class="kanban-col">
+        <h4 style="margin-bottom: 16px; color: var(--text-muted); display: flex; align-items: center; gap: 8px">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted)"></span>
+            To Do (3)
+        </h4>
+        <div class="glass glass-card" style="padding: 16px; margin-bottom: 12px">
+            <div style="font-size: 12px; color: var(--danger); margin-bottom: 8px; font-weight: 600">Urgent</div>
+            <p style="font-weight: 500; font-size: 14px">Fix production API latency</p>
+            <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center">
+                <i class="fas fa-paperclip" style="font-size: 12px; color: var(--text-muted)"> 2</i>
+                <div style="width: 24px; height: 24px; border-radius: 50%; background: #4f46e5"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="kanban-col">
+        <h4 style="margin-bottom: 16px; color: var(--primary); display: flex; align-items: center; gap: 8px">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary)"></span>
+            In Progress (1)
+        </h4>
+        <div class="glass glass-card" style="padding: 16px; margin-bottom: 12px">
+            <div style="font-size: 12px; color: var(--primary); margin-bottom: 8px; font-weight: 600">Development</div>
+            <p style="font-weight: 500; font-size: 14px">Implement Redis caching</p>
+            <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center">
+                <i class="fas fa-comment" style="font-size: 12px; color: var(--text-muted)"> 5</i>
+                <div style="width: 24px; height: 24px; border-radius: 50%; background: #10b981"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="kanban-col">
+        <h4 style="margin-bottom: 16px; color: var(--warning); display: flex; align-items: center; gap: 8px">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--warning)"></span>
+            Review (2)
+        </h4>
+    </div>
+
+    <div class="kanban-col">
+        <h4 style="margin-bottom: 16px; color: var(--success); display: flex; align-items: center; gap: 8px">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--success)"></span>
+            Done (15)
+        </h4>
+    </div>
+</div>
+{{end}}

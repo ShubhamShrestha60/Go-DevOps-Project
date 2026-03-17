@@ -1,0 +1,22 @@
+# Binaries
+bin/
+main
+
+# Environment
+.env
+
+# Dependencies
+vendor/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Docker
+.docker_temp/
