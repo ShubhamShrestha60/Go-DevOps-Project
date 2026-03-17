@@ -6,6 +6,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/user/devpulse/internal/config"
 )
@@ -24,12 +27,16 @@ func New(cfg *config.Config) (*DB, error) {
 		cfg.DB.SSLMode,
 	)
 
+	// Run migrations first
+	if err := RunMigrations(dsn); err != nil {
+		return nil, fmt.Errorf("migration failed: %v", err)
+	}
+
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse dsn: %v", err)
 	}
 
-	// Connection pool settings for production
 	config.MaxConns = 25
 	config.MinConns = 5
 	config.MaxConnLifetime = time.Hour
@@ -40,13 +47,27 @@ func New(cfg *config.Config) (*DB, error) {
 		return nil, fmt.Errorf("unable to create connection pool: %v", err)
 	}
 
-	// Ping to check connection
 	if err := pool.Ping(context.Background()); err != nil {
 		return nil, fmt.Errorf("unable to ping database: %v", err)
 	}
 
 	log.Println("Successfully connected to PostgreSQL")
 	return &DB{Pool: pool}, nil
+}
+
+func RunMigrations(dsn string) error {
+	// Source is the file path to migrations
+	m, err := migrate.New("file://migrations", dsn)
+	if err != nil {
+		return err
+	}
+	
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return err
+	}
+	
+	log.Println("Database migrations applied successfully")
+	return nil
 }
 
 func (db *DB) Close() {
