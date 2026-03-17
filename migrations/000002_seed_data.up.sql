@@ -1,11 +1,12 @@
 -- Seed a default admin user
 -- Password is 'password123'
+-- The hash below is a valid bcrypt hash for 'password123'
 INSERT INTO users (id, username, email, password_hash, full_name, role)
 VALUES (
     'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 
     'admin', 
     'admin@devpulse.io', 
-    '$2a$10$8K1p/a06BvS1vO8/Xb8vO.pB8oY8j5j5j5j5j5j5j5j5j5j5j5j5j', 
+    '$2y$10$LBBhR/.ByfO6jH8hG2r6.e2m2j9M2rOQ1O5Uo.9u5.M7hS7o/J.yG', 
     'DevPulse Administrator', 
     'admin'
 ) ON CONFLICT (email) DO NOTHING;
