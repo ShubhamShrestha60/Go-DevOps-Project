@@ -23,9 +23,12 @@ type Config struct {
 	}
 
 	Auth struct {
-		JWTSecret   string
-		JWTExpiryH  int
+		JWTSecret     string
+		JWTExpiryH    int
+		AdminPassword string
 	}
+
+	MigrationsPath string
 }
 
 func Load() *Config {
@@ -49,6 +52,9 @@ func Load() *Config {
 
 	cfg.Auth.JWTSecret = getEnv("JWT_SECRET", "change-me")
 	cfg.Auth.JWTExpiryH, _ = strconv.Atoi(getEnv("JWT_EXPIRY_HOURS", "24"))
+	cfg.Auth.AdminPassword = getEnv("ADMIN_PASSWORD", "")
+
+	cfg.MigrationsPath = getEnv("MIGRATIONS_PATH", "migrations")
 
 	return cfg
 }

@@ -28,7 +28,7 @@ func New(cfg *config.Config) (*DB, error) {
 	)
 
 	// Run migrations first
-	if err := RunMigrations(dsn); err != nil {
+	if err := RunMigrations(dsn, cfg.MigrationsPath); err != nil {
 		return nil, fmt.Errorf("migration failed: %v", err)
 	}
 
@@ -55,9 +55,9 @@ func New(cfg *config.Config) (*DB, error) {
 	return &DB{Pool: pool}, nil
 }
 
-func RunMigrations(dsn string) error {
+func RunMigrations(dsn string, migrationsPath string) error {
 	// Source is the file path to migrations
-	m, err := migrate.New("file://migrations", dsn)
+	m, err := migrate.New("file://"+migrationsPath, dsn)
 	if err != nil {
 		return err
 	}

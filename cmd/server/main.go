@@ -42,7 +42,7 @@ func main() {
 	taskRepo := postgres.NewTaskRepository(db.Pool)
 
 	// 5. Initialize Services
-	authService := service.NewAuthService(userRepo, cfg.Auth.JWTSecret, cfg.Auth.JWTExpiryH)
+	authService := service.NewAuthService(userRepo, cfg.Auth.JWTSecret, cfg.Auth.JWTExpiryH, cfg.Auth.AdminPassword)
 	projectService := service.NewProjectService(projectRepo)
 	taskService := service.NewTaskService(taskRepo)
 
