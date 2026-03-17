@@ -71,3 +71,22 @@ func (r *taskRepo) GetStats(ctx context.Context) (int, error) {
 	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM tasks").Scan(&count)
 	return count, err
 }
+
+func (r *taskRepo) ListAll(ctx context.Context) ([]*models.Task, error) {
+	query := `SELECT id, project_id, title, description, status, priority, assigned_to, due_date, created_at, updated_at FROM tasks`
+	rows, err := r.pool.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tasks []*models.Task
+	for rows.Next() {
+		t := &models.Task{}
+		if err := rows.Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.DueDate, &t.CreatedAt, &t.UpdatedAt); err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, t)
+	}
+	return tasks, nil
+}

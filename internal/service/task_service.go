@@ -65,3 +65,7 @@ func (s *TaskService) GetStats(ctx context.Context) (map[string]interface{}, err
 		"total_tasks": count,
 	}, nil
 }
+
+func (s *TaskService) ListAllTasks(ctx context.Context) ([]*models.Task, error) {
+	return s.repo.ListAll(ctx)
+}

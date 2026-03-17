@@ -145,6 +145,21 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!columns.todo) return;
 
+        // Populate project dropdown if we're on tasks page
+        const projDropdown = document.getElementById('task-project-id');
+        if (projDropdown && projDropdown.options.length <= 1) {
+            try {
+                const projResp = await fetch('/api/projects');
+                const projects = await projResp.json();
+                projects.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = p.name;
+                    projDropdown.appendChild(opt);
+                });
+            } catch (err) { console.error('Failed to fill project dropdown:', err); }
+        }
+
         try {
             const resp = await fetch('/api/tasks');
             const tasks = await resp.json();
@@ -154,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (container) container.innerHTML = '';
             });
 
-            if (!tasks) return;
+            if (!tasks || tasks.length === 0) return;
 
             tasks.forEach(t => {
                 const status = t.status || 'todo';
@@ -165,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     taskEl.style.padding = '16px';
                     taskEl.style.marginBottom = '12px';
                     taskEl.innerHTML = `
-                        <div style="font-size: 12px; color: var(--primary); margin-bottom: 8px; font-weight: 600">${t.priority}</div>
+                        <div style="font-size: 12px; color: var(--primary); margin-bottom: 8px; font-weight: 600">${t.priority.toUpperCase()}</div>
                         <p style="font-weight: 500; font-size: 14px">${t.title}</p>
                         <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center">
                             <i class="fas fa-tasks" style="font-size: 12px; color: var(--text-muted)"></i>
@@ -181,11 +196,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.saveTask = async () => {
+        const project_id = document.getElementById('task-project-id').value;
         const title = document.getElementById('task-title').value;
         const description = document.getElementById('task-desc').value;
         const status = document.getElementById('task-status').value;
         const priority = document.getElementById('task-priority').value;
 
+        if (!project_id) {
+            showToast('Please select a project', 'error');
+            return;
+        }
         if (!title) {
             showToast('Task title is required', 'error');
             return;
@@ -195,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const resp = await fetch('/api/tasks', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, description, status, priority })
+                body: JSON.stringify({ project_id, title, description, status, priority })
             });
 
             if (resp.ok) {

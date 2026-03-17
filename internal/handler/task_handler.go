@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/user/devpulse/internal/models"
 	"github.com/user/devpulse/internal/service"
 )
 
@@ -40,24 +41,34 @@ func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(task)
 }
 
 func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
 	projectIDStr := r.URL.Query().Get("project_id")
-	projectID, err := uuid.Parse(projectIDStr)
-	if err != nil {
-		http.Error(w, "invalid project_id", http.StatusBadRequest)
-		return
+	
+	var tasks []*models.Task
+	var err error
+
+	if projectIDStr == "" {
+		tasks, err = h.service.ListAllTasks(r.Context())
+	} else {
+		projectID, parseErr := uuid.Parse(projectIDStr)
+		if parseErr != nil {
+			http.Error(w, "invalid project_id", http.StatusBadRequest)
+			return
+		}
+		tasks, err = h.service.ListProjectTasks(r.Context(), projectID)
 	}
 
-	tasks, err := h.service.ListProjectTasks(r.Context(), projectID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(tasks)
 }
 
