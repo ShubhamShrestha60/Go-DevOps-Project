@@ -48,14 +48,19 @@ func (s *AuthService) Register(ctx context.Context, username, email, password, f
 }
 
 func (s *AuthService) Login(ctx context.Context, email, password string) (string, *models.User, error) {
+	log.Printf("Login attempt for email: %s", email)
 	user, err := s.repo.GetByEmail(ctx, email)
 	if err != nil {
+		log.Printf("Login failed: user not found for email %s: %v", email, err)
 		return "", nil, errors.New("invalid credentials")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		log.Printf("Login failed: password mismatch for email %s", email)
 		return "", nil, errors.New("invalid credentials")
 	}
+
+	log.Printf("Login successful for user: %s", user.ID)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.ID.String(),

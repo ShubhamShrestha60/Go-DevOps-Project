@@ -6,7 +6,7 @@ VALUES (
     'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 
     'admin', 
     'admin@devpulse.io', 
-    '$2y$10$LBBhR/.ByfO6jH8hG2r6.e2m2j9M2rOQ1O5Uo.9u5.M7hS7o/J.yG', 
+    '$2a$10$8K1p/a06BvS1vO8/Xb8vO.pB8oY8j5j5j5j5j5j5j5j5j5j5j5j5j', 
     'DevPulse Administrator', 
     'admin'
 ) ON CONFLICT (email) DO NOTHING;
