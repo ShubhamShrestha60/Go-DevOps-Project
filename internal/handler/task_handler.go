@@ -123,3 +123,13 @@ func (h *TaskHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *TaskHandler) Stats(w http.ResponseWriter, r *http.Request) {
+	stats, err := h.service.GetStats(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(stats)
+}

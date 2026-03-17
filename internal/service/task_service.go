@@ -55,3 +55,13 @@ func (s *TaskService) UpdateTask(ctx context.Context, id uuid.UUID, title, descr
 func (s *TaskService) DeleteTask(ctx context.Context, id uuid.UUID) error {
 	return s.repo.Delete(ctx, id)
 }
+
+func (s *TaskService) GetStats(ctx context.Context) (map[string]interface{}, error) {
+	count, err := s.repo.GetStats(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{
+		"total_tasks": count,
+	}, nil
+}

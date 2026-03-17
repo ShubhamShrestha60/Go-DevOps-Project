@@ -29,4 +29,5 @@ type TaskRepository interface {
 	ListByProject(ctx context.Context, projectID uuid.UUID) ([]*models.Task, error)
 	Update(ctx context.Context, task *models.Task) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	GetStats(ctx context.Context) (int, error)
 }

@@ -54,6 +54,7 @@ func New(
 		})
 
 		r.Route("/api/tasks", func(r chi.Router) {
+			r.Get("/stats", taskHandler.Stats)
 			r.Post("/", taskHandler.Create)
 			r.Get("/", taskHandler.List)
 			r.Get("/{id}", taskHandler.Get)

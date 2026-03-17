@@ -1,3 +1,26 @@
+document.addEventListener('DOMContentLoaded', () => {
+    // Current user state
+    let currentUser = null;
+
+    // Highlight active nav link
+    const path = window.location.pathname;
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+        if (link.getAttribute('href') === path) {
+            link.classList.add('active');
+        }
+    });
+
+    // Logout handler
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/login';
+        });
+    }
+
     // Fetch data based on path
     if (path === '/' || path === '/projects' || path === '/tasks') {
         fetchUserInfo();
@@ -10,7 +33,11 @@
     if (path === '/projects') {
         fetchProjects();
     }
-...
+
+    if (path === '/tasks') {
+        fetchTasks();
+    }
+
     async function fetchUserInfo() {
         const userNameElement = document.getElementById('user-name');
         if (userNameElement) {
@@ -20,11 +47,20 @@
 
     async function fetchDashboardStats() {
         try {
-            const resp = await fetch('/api/projects/stats');
-            const data = await resp.json();
+            // Fetch Project Stats
+            const projResp = await fetch('/api/projects/stats');
+            const projData = await projResp.json();
             const projectCountElem = document.getElementById('total-projects-stat');
-            if (projectCountElem && data.total_projects !== undefined) {
-                projectCountElem.textContent = data.total_projects;
+            if (projectCountElem && projData.total_projects !== undefined) {
+                projectCountElem.textContent = projData.total_projects;
+            }
+
+            // Fetch Task Stats
+            const taskResp = await fetch('/api/tasks/stats');
+            const taskData = await taskResp.json();
+            const taskCountElem = document.getElementById('total-tasks-stat');
+            if (taskCountElem && taskData.total_tasks !== undefined) {
+                taskCountElem.textContent = taskData.total_tasks;
             }
         } catch (err) {
             console.error('Failed to fetch stats:', err);
@@ -41,7 +77,7 @@
             const projects = await resp.json();
             
             projectList.innerHTML = '';
-            if (projects.length === 0) {
+            if (!projects || projects.length === 0) {
                 projectList.innerHTML = '<p class="glass glass-card" style="padding: 20px; grid-column: 1/-1; text-align: center">No projects yet. Create your first one!</p>';
                 return;
             }
@@ -100,7 +136,6 @@
 
     // Tasks Logic
     async function fetchTasks() {
-        // Simple Kanban populate logic
         const columns = {
             'todo': document.getElementById('col-todo'),
             'in-progress': document.getElementById('col-in-progress'),
@@ -114,11 +149,12 @@
             const resp = await fetch('/api/tasks');
             const tasks = await resp.json();
 
-            // Clear columns
             Object.values(columns).forEach(col => {
                 const container = col.querySelector('.task-container');
                 if (container) container.innerHTML = '';
             });
+
+            if (!tasks) return;
 
             tasks.forEach(t => {
                 const status = t.status || 'todo';

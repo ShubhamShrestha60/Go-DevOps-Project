@@ -65,3 +65,9 @@ func (r *taskRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := r.pool.Exec(ctx, query, id)
 	return err
 }
+
+func (r *taskRepo) GetStats(ctx context.Context) (int, error) {
+	var count int
+	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM tasks").Scan(&count)
+	return count, err
+}
