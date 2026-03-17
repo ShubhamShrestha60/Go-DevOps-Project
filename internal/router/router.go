@@ -16,6 +16,7 @@ func New(
 	projectHandler *handler.ProjectHandler,
 	taskHandler *handler.TaskHandler,
 	healthHandler *handler.HealthHandler,
+	dashboardHandler *handler.DashboardHandler,
 ) *chi.Mux {
 	r := chi.NewRouter()
 
@@ -67,15 +68,9 @@ func New(
 
 	r.Group(func(r chi.Router) {
 		r.Use(mw.Auth)
-		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			http.ServeFile(w, r, "web/templates/pages/dashboard.html")
-		})
-		r.Get("/projects", func(w http.ResponseWriter, r *http.Request) {
-			http.ServeFile(w, r, "web/templates/pages/projects.html")
-		})
-		r.Get("/tasks", func(w http.ResponseWriter, r *http.Request) {
-			http.ServeFile(w, r, "web/templates/pages/tasks.html")
-		})
+		r.Get("/", dashboardHandler.Index)
+		r.Get("/projects", dashboardHandler.Projects)
+		r.Get("/tasks", dashboardHandler.Tasks)
 	})
 
 	return r

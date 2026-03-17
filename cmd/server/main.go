@@ -51,12 +51,13 @@ func main() {
 	projectHandler := handler.NewProjectHandler(projectService)
 	taskHandler := handler.NewTaskHandler(taskService)
 	healthHandler := handler.NewHealthHandler(db)
+	dashboardHandler := handler.NewDashboardHandler()
 
 	// 7. Initialize Middleware
 	mw := middleware.New(logger, authService)
 
 	// 8. Initialize Router
-	r := router.New(mw, authHandler, projectHandler, taskHandler, healthHandler)
+	r := router.New(mw, authHandler, projectHandler, taskHandler, healthHandler, dashboardHandler)
 
 	// 9. Start Server with Graceful Shutdown
 	srv := &http.Server{

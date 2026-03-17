@@ -1,3 +1,4 @@
+{{define "base.html"}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -57,7 +58,7 @@
 
             <div id="content-area">
                 <!-- Page content will be loaded here via templates or AJAX -->
-                {{block "content" .}}{{end}}
+                {{template "content" .}}
             </div>
         </main>
     </div>
@@ -65,3 +66,4 @@
     <script src="/static/js/app.js"></script>
 </body>
 </html>
+{{end}}
