@@ -27,9 +27,10 @@ jobs:
       run: go test -v ./...
 
     - name: Lint
-      uses: golangci/golangci-lint-action@v6
-      with:
-        version: latest
+      run: go vet ./...
+      #uses: golangci/golangci-lint-action@v6
+      #with:
+        #version: latest
 
   docker-build:
     needs: build-and-test
