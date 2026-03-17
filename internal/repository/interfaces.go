@@ -20,6 +20,7 @@ type ProjectRepository interface {
 	ListByOwner(ctx context.Context, ownerID uuid.UUID) ([]*models.Project, error)
 	Update(ctx context.Context, project *models.Project) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	GetStats(ctx context.Context) (int, error)
 }
 
 type TaskRepository interface {

@@ -2,11 +2,7 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px">
     <h2>Task Board</h2>
     <div style="display: flex; gap: 12px">
-        <select class="form-control" style="width: 200px">
-            <option>All Projects</option>
-            <option>Project Apollo</option>
-        </select>
-        <button class="btn btn-primary">
+        <button class="btn btn-primary" onclick="showModal('task-modal')">
             <i class="fas fa-plus"></i> Add Task
         </button>
     </div>
@@ -14,48 +10,75 @@
 
 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px">
     <!-- Kanban Columns -->
-    <div class="kanban-col">
+    <div class="kanban-col" id="col-todo">
         <h4 style="margin-bottom: 16px; color: var(--text-muted); display: flex; align-items: center; gap: 8px">
             <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted)"></span>
-            To Do (3)
+            To Do
         </h4>
-        <div class="glass glass-card" style="padding: 16px; margin-bottom: 12px">
-            <div style="font-size: 12px; color: var(--danger); margin-bottom: 8px; font-weight: 600">Urgent</div>
-            <p style="font-weight: 500; font-size: 14px">Fix production API latency</p>
-            <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center">
-                <i class="fas fa-paperclip" style="font-size: 12px; color: var(--text-muted)"> 2</i>
-                <div style="width: 24px; height: 24px; border-radius: 50%; background: #4f46e5"></div>
-            </div>
-        </div>
+        <div class="task-container"></div>
     </div>
 
-    <div class="kanban-col">
+    <div class="kanban-col" id="col-in-progress">
         <h4 style="margin-bottom: 16px; color: var(--primary); display: flex; align-items: center; gap: 8px">
             <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary)"></span>
-            In Progress (1)
+            In Progress
         </h4>
-        <div class="glass glass-card" style="padding: 16px; margin-bottom: 12px">
-            <div style="font-size: 12px; color: var(--primary); margin-bottom: 8px; font-weight: 600">Development</div>
-            <p style="font-weight: 500; font-size: 14px">Implement Redis caching</p>
-            <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center">
-                <i class="fas fa-comment" style="font-size: 12px; color: var(--text-muted)"> 5</i>
-                <div style="width: 24px; height: 24px; border-radius: 50%; background: #10b981"></div>
-            </div>
-        </div>
+        <div class="task-container"></div>
     </div>
 
-    <div class="kanban-col">
+    <div class="kanban-col" id="col-review">
         <h4 style="margin-bottom: 16px; color: var(--warning); display: flex; align-items: center; gap: 8px">
             <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--warning)"></span>
-            Review (2)
+            Review
         </h4>
+        <div class="task-container"></div>
     </div>
 
-    <div class="kanban-col">
+    <div class="kanban-col" id="col-done">
         <h4 style="margin-bottom: 16px; color: var(--success); display: flex; align-items: center; gap: 8px">
             <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--success)"></span>
-            Done (15)
+            Done
         </h4>
+        <div class="task-container"></div>
+    </div>
+</div>
+
+<!-- Create Task Modal -->
+<div id="task-modal" class="modal-overlay" style="display: none;">
+    <div class="glass glass-card modal-content" style="max-width: 500px; width: 90%; margin: 100px auto; padding: 32px">
+        <h3 style="margin-bottom: 24px">Add New Task</h3>
+        <div class="form-group" style="margin-bottom: 16px">
+            <label style="display: block; margin-bottom: 8px">Title</label>
+            <input type="text" id="task-title" class="form-control" placeholder="Fix bug #123">
+        </div>
+        <div class="form-group" style="margin-bottom: 16px">
+            <label style="display: block; margin-bottom: 8px">Description</label>
+            <textarea id="task-desc" class="form-control" placeholder="Add some details..."></textarea>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px">
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 8px">Status</label>
+                <select id="task-status" class="form-control">
+                    <option value="todo">To Do</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="review">Review</option>
+                    <option value="done">Done</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label style="display: block; margin-bottom: 8px">Priority</label>
+                <select id="task-priority" class="form-control">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                </select>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: flex-end">
+            <button class="btn" style="background: rgba(255,255,255,0.05)" onclick="hideModal('task-modal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveTask()">Add Task</button>
+        </div>
     </div>
 </div>
 {{end}}

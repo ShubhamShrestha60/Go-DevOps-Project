@@ -45,6 +45,7 @@ func New(
 		r.Use(mw.Auth)
 
 		r.Route("/api/projects", func(r chi.Router) {
+			r.Get("/stats", projectHandler.Stats)
 			r.Post("/", projectHandler.Create)
 			r.Get("/", projectHandler.List)
 			r.Get("/{id}", projectHandler.Get)

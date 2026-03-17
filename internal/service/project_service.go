@@ -32,6 +32,16 @@ func (s *ProjectService) GetProject(ctx context.Context, id uuid.UUID) (*models.
 	return s.repo.GetByID(ctx, id)
 }
 
+func (s *ProjectService) GetStats(ctx context.Context) (map[string]interface{}, error) {
+	count, err := s.repo.GetStats(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]interface{}{
+		"total_projects": count,
+	}, nil
+}
+
 func (s *ProjectService) ListUserProjects(ctx context.Context, userID uuid.UUID) ([]*models.Project, error) {
 	return s.repo.ListByOwner(ctx, userID)
 }
