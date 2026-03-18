@@ -32,8 +32,19 @@ func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projectID, _ := uuid.Parse(input.ProjectID)
-	assignedTo, _ := uuid.Parse(input.AssignedTo)
+	projectID, err := uuid.Parse(input.ProjectID)
+	if err != nil {
+		http.Error(w, "invalid project_id", http.StatusBadRequest)
+		return
+	}
+
+	var assignedTo *uuid.UUID
+	if input.AssignedTo != "" {
+		id, err := uuid.Parse(input.AssignedTo)
+		if err == nil {
+			assignedTo = &id
+		}
+	}
 
 	task, err := h.service.CreateTask(r.Context(), projectID, input.Title, input.Description, input.Priority, assignedTo)
 	if err != nil {
@@ -109,7 +120,13 @@ func (h *TaskHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	assignedTo, _ := uuid.Parse(input.AssignedTo)
+	var assignedTo *uuid.UUID
+	if input.AssignedTo != "" {
+		parsedID, err := uuid.Parse(input.AssignedTo)
+		if err == nil {
+			assignedTo = &parsedID
+		}
+	}
 
 	if err := h.service.UpdateTask(r.Context(), id, input.Title, input.Description, input.Status, input.Priority, assignedTo); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

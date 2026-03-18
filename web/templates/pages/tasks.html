@@ -81,7 +81,14 @@
                 </select>
             </div>
         </div>
-        <div style="display: flex; gap: 12px; justify-content: flex-end">
+        <div class="form-group" style="margin-bottom: 16px">
+            <label style="display: block; margin-bottom: 8px">Assigned To</label>
+            <select id="task-assigned-to" class="form-control">
+                <option value="">Unassigned</option>
+                <!-- Users populated by JS -->
+            </select>
+        </div>
+        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 32px">
             <button class="btn" style="background: rgba(255,255,255,0.05)" onclick="hideModal('task-modal')">Cancel</button>
             <button class="btn btn-primary" onclick="saveTask()">Add Task</button>
         </div>

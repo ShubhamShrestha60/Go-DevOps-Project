@@ -40,16 +40,21 @@ func main() {
 	userRepo := postgres.NewUserRepository(db.Pool)
 	projectRepo := postgres.NewProjectRepository(db.Pool)
 	taskRepo := postgres.NewTaskRepository(db.Pool)
+	activityRepo := postgres.NewActivityRepository(db.Pool)
 
 	// 5. Initialize Services
 	authService := service.NewAuthService(userRepo, cfg.Auth.JWTSecret, cfg.Auth.JWTExpiryH, cfg.Auth.AdminPassword)
-	projectService := service.NewProjectService(projectRepo)
-	taskService := service.NewTaskService(taskRepo)
+	projectService := service.NewProjectService(projectRepo, activityRepo)
+	taskService := service.NewTaskService(taskRepo, activityRepo)
+	userService := service.NewUserService(userRepo)
+	activityService := service.NewActivityService(activityRepo)
 
 	// 6. Initialize Handlers
 	authHandler := handler.NewAuthHandler(authService)
 	projectHandler := handler.NewProjectHandler(projectService)
 	taskHandler := handler.NewTaskHandler(taskService)
+	userHandler := handler.NewUserHandler(userService)
+	activityHandler := handler.NewActivityHandler(activityService)
 	healthHandler := handler.NewHealthHandler(db)
 	dashboardHandler := handler.NewDashboardHandler()
 
@@ -57,7 +62,7 @@ func main() {
 	mw := middleware.New(logger, authService)
 
 	// 8. Initialize Router
-	r := router.New(mw, authHandler, projectHandler, taskHandler, healthHandler, dashboardHandler)
+	r := router.New(mw, authHandler, projectHandler, taskHandler, userHandler, activityHandler, healthHandler, dashboardHandler)
 
 	// 9. Start Server with Graceful Shutdown
 	srv := &http.Server{

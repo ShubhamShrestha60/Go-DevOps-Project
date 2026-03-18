@@ -9,11 +9,12 @@ import (
 )
 
 type ProjectService struct {
-	repo repository.ProjectRepository
+	repo         repository.ProjectRepository
+	activityRepo repository.ActivityLogRepository
 }
 
-func NewProjectService(repo repository.ProjectRepository) *ProjectService {
-	return &ProjectService{repo: repo}
+func NewProjectService(repo repository.ProjectRepository, activityRepo repository.ActivityLogRepository) *ProjectService {
+	return &ProjectService{repo: repo, activityRepo: activityRepo}
 }
 
 func (s *ProjectService) CreateProject(ctx context.Context, name, description string, ownerID uuid.UUID) (*models.Project, error) {
@@ -25,6 +26,13 @@ func (s *ProjectService) CreateProject(ctx context.Context, name, description st
 	if err := s.repo.Create(ctx, project); err != nil {
 		return nil, err
 	}
+	s.activityRepo.Create(ctx, &models.ActivityLog{
+		UserID:     ownerID,
+		Action:     "create",
+		EntityType: "project",
+		EntityID:   project.ID,
+		Details:    "Created project: " + name,
+	})
 	return project, nil
 }
 
@@ -53,9 +61,30 @@ func (s *ProjectService) UpdateProject(ctx context.Context, id uuid.UUID, name, 
 	}
 	p.Name = name
 	p.Description = description
-	return s.repo.Update(ctx, p)
+	err = s.repo.Update(ctx, p)
+	if err == nil {
+		s.activityRepo.Create(ctx, &models.ActivityLog{
+			UserID:     p.OwnerID,
+			Action:     "update",
+			EntityType: "project",
+			EntityID:   id,
+			Details:    "Updated project: " + name,
+		})
+	}
+	return err
 }
 
 func (s *ProjectService) DeleteProject(ctx context.Context, id uuid.UUID) error {
-	return s.repo.Delete(ctx, id)
+	p, _ := s.repo.GetByID(ctx, id)
+	err := s.repo.Delete(ctx, id)
+	if err == nil && p != nil {
+		s.activityRepo.Create(ctx, &models.ActivityLog{
+			UserID:     p.OwnerID,
+			Action:     "delete",
+			EntityType: "project",
+			EntityID:   id,
+			Details:    "Deleted project: " + p.Name,
+		})
+	}
+	return err
 }

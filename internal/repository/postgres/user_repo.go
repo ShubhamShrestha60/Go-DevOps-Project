@@ -51,3 +51,22 @@ func (r *userRepo) Update(ctx context.Context, u *models.User) error {
 	_, err := r.pool.Exec(ctx, query, u.Username, u.Email, u.FullName, u.Role, u.ID)
 	return err
 }
+
+func (r *userRepo) ListAll(ctx context.Context) ([]*models.User, error) {
+	query := `SELECT id, username, email, full_name, role, created_at, updated_at FROM users`
+	rows, err := r.pool.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*models.User
+	for rows.Next() {
+		u := &models.User{}
+		if err := rows.Scan(&u.ID, &u.Username, &u.Email, &u.FullName, &u.Role, &u.CreatedAt, &u.UpdatedAt); err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+	return users, nil
+}

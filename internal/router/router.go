@@ -15,6 +15,8 @@ func New(
 	authHandler *handler.AuthHandler,
 	projectHandler *handler.ProjectHandler,
 	taskHandler *handler.TaskHandler,
+	userHandler *handler.UserHandler,
+	activityHandler *handler.ActivityHandler,
 	healthHandler *handler.HealthHandler,
 	dashboardHandler *handler.DashboardHandler,
 ) *chi.Mux {
@@ -61,6 +63,9 @@ func New(
 			r.Put("/{id}", taskHandler.Update)
 			r.Delete("/{id}", taskHandler.Delete)
 		})
+
+		r.Get("/api/users", userHandler.List)
+		r.Get("/api/activities", activityHandler.List)
 	})
 
 	// Frontend Routes (Placeholder for template rendering)

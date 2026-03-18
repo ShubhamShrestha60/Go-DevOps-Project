@@ -66,10 +66,24 @@ func (r *taskRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-func (r *taskRepo) GetStats(ctx context.Context) (int, error) {
-	var count int
-	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM tasks").Scan(&count)
-	return count, err
+func (r *taskRepo) GetStats(ctx context.Context) (map[string]int, error) {
+	query := `SELECT status, COUNT(*) FROM tasks GROUP BY status`
+	rows, err := r.pool.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	stats := make(map[string]int)
+	for rows.Next() {
+		var status string
+		var count int
+		if err := rows.Scan(&status, &count); err != nil {
+			return nil, err
+		}
+		stats[status] = count
+	}
+	return stats, nil
 }
 
 func (r *taskRepo) ListAll(ctx context.Context) ([]*models.Task, error) {

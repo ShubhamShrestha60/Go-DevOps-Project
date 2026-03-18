@@ -33,7 +33,7 @@ type Task struct {
 	Description string    `json:"description"`
 	Status      string    `json:"status"`   // todo, in-progress, review, done
 	Priority    string    `json:"priority"` // low, medium, high, urgent
-	AssignedTo  uuid.UUID `json:"assigned_to"`
+	AssignedTo  *uuid.UUID `json:"assigned_to,omitempty"`
 	DueDate     *time.Time `json:"due_date,omitempty"`
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`

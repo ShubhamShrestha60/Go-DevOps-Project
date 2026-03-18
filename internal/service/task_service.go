@@ -9,14 +9,15 @@ import (
 )
 
 type TaskService struct {
-	repo repository.TaskRepository
+	repo         repository.TaskRepository
+	activityRepo repository.ActivityLogRepository
 }
 
-func NewTaskService(repo repository.TaskRepository) *TaskService {
-	return &TaskService{repo: repo}
+func NewTaskService(repo repository.TaskRepository, activityRepo repository.ActivityLogRepository) *TaskService {
+	return &TaskService{repo: repo, activityRepo: activityRepo}
 }
 
-func (s *TaskService) CreateTask(ctx context.Context, projectID uuid.UUID, title, description, priority string, assignedTo uuid.UUID) (*models.Task, error) {
+func (s *TaskService) CreateTask(ctx context.Context, projectID uuid.UUID, title, description, priority string, assignedTo *uuid.UUID) (*models.Task, error) {
 	task := &models.Task{
 		ProjectID:   projectID,
 		Title:       title,
@@ -28,6 +29,12 @@ func (s *TaskService) CreateTask(ctx context.Context, projectID uuid.UUID, title
 	if err := s.repo.Create(ctx, task); err != nil {
 		return nil, err
 	}
+	s.activityRepo.Create(ctx, &models.ActivityLog{
+		Action:     "create",
+		EntityType: "task",
+		EntityID:   task.ID,
+		Details:    "Created task: " + title,
+	})
 	return task, nil
 }
 
@@ -39,30 +46,58 @@ func (s *TaskService) ListProjectTasks(ctx context.Context, projectID uuid.UUID)
 	return s.repo.ListByProject(ctx, projectID)
 }
 
-func (s *TaskService) UpdateTask(ctx context.Context, id uuid.UUID, title, description, status, priority string, assignedTo uuid.UUID) error {
+func (s *TaskService) UpdateTask(ctx context.Context, id uuid.UUID, title, description, status, priority string, assignedTo *uuid.UUID) error {
 	t, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
-	t.Title = title
-	t.Description = description
-	t.Status = status
-	t.Priority = priority
-	t.AssignedTo = assignedTo
-	return s.repo.Update(ctx, t)
+
+	if title != "" { t.Title = title }
+	if description != "" { t.Description = description }
+	if status != "" { t.Status = status }
+	if priority != "" { t.Priority = priority }
+	if assignedTo != nil { t.AssignedTo = assignedTo }
+
+	err = s.repo.Update(ctx, t)
+	if err == nil {
+		s.activityRepo.Create(ctx, &models.ActivityLog{
+			Action:     "update",
+			EntityType: "task",
+			EntityID:   id,
+			Details:    "Updated task: " + t.Title + " to status: " + t.Status,
+		})
+	}
+	return err
 }
 
 func (s *TaskService) DeleteTask(ctx context.Context, id uuid.UUID) error {
-	return s.repo.Delete(ctx, id)
+	t, _ := s.repo.GetByID(ctx, id)
+	err := s.repo.Delete(ctx, id)
+	if err == nil && t != nil {
+		s.activityRepo.Create(ctx, &models.ActivityLog{
+			Action:     "delete",
+			EntityType: "task",
+			EntityID:   id,
+			Details:    "Deleted task: " + t.Title,
+		})
+	}
+	return err
 }
 
 func (s *TaskService) GetStats(ctx context.Context) (map[string]interface{}, error) {
-	count, err := s.repo.GetStats(ctx)
+	statusStats, err := s.repo.GetStats(ctx)
 	if err != nil {
 		return nil, err
 	}
+	
+	total := 0
+	for _, count := range statusStats {
+		total += count
+	}
+
 	return map[string]interface{}{
-		"total_tasks": count,
+		"total_tasks": total,
+		"statuses":    statusStats,
 	}, nil
 }
 
