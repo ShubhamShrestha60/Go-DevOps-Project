@@ -68,8 +68,7 @@ func (h *ProjectHandler) List(w http.ResponseWriter, r *http.Request) {
 	if query != "" {
 		projects, err = h.service.SearchProjects(r.Context(), query)
 	} else {
-		// Get userID from context (placeholder for now)
-		userID := uuid.Nil
+		userID := middleware.GetUserID(r.Context())
 		projects, err = h.service.ListUserProjects(r.Context(), userID)
 	}
 

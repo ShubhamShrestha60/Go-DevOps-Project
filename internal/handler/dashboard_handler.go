@@ -21,3 +21,7 @@ func (h *DashboardHandler) Projects(w http.ResponseWriter, r *http.Request) {
 func (h *DashboardHandler) Tasks(w http.ResponseWriter, r *http.Request) {
 	RenderTemplate(w, "tasks", nil)
 }
+
+func (h *DashboardHandler) Profile(w http.ResponseWriter, r *http.Request) {
+	RenderTemplate(w, "profile", nil)
+}

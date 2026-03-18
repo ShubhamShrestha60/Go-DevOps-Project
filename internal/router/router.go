@@ -87,6 +87,7 @@ func New(
 		r.Get("/", dashboardHandler.Index)
 		r.Get("/projects", dashboardHandler.Projects)
 		r.Get("/tasks", dashboardHandler.Tasks)
+		r.Get("/profile", dashboardHandler.Profile)
 	})
 
 	return r

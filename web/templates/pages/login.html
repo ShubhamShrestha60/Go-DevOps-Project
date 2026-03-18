@@ -47,14 +47,58 @@
             <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px">Sign In</button>
         </form>
 
+        <form id="register-form" style="display: none">
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="reg-fullname" class="form-control" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" id="reg-username" class="form-control" placeholder="johndoe" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" id="reg-email" class="form-control" placeholder="name@company.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" id="reg-password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px">Create Account</button>
+        </form>
+
         <div style="margin-top: 24px; text-align: center; font-size: 14px; color: var(--text-muted)">
-            Don't have an account? <a href="#" id="toggle-register" style="color: var(--primary); text-decoration: none">Register</a>
+            <span id="toggle-text">Don't have an account?</span> 
+            <a href="#" id="toggle-auth" style="color: var(--primary); text-decoration: none">Register</a>
         </div>
     </div>
 
     <script src="/static/js/app.js"></script>
     <script>
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const toggleBtn = document.getElementById('toggle-auth');
+        const toggleText = document.getElementById('toggle-text');
+        const cardTitle = document.querySelector('.login-card h2');
+
+        toggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (loginForm.style.display === 'none') {
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+                toggleBtn.textContent = 'Register';
+                toggleText.textContent = "Don't have an account?";
+                cardTitle.textContent = 'Welcome to DevPulse';
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+                toggleBtn.textContent = 'Sign In';
+                toggleText.textContent = "Already have an account?";
+                cardTitle.textContent = 'Create your account';
+            }
+        });
+
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -73,6 +117,34 @@
                 }
             } catch (err) {
                 console.error(err);
+                alert('Login failed. Please try again.');
+            }
+        });
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById('reg-fullname').value;
+            const username = document.getElementById('reg-username').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ full_name: fullName, username, email, password })
+                });
+
+                if (res.ok) {
+                    alert('Registration successful! Please sign in.');
+                    toggleBtn.click(); // Switch back to login
+                } else {
+                    const error = await res.text();
+                    alert('Registration failed: ' + error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Registration failed. Please try again.');
             }
         });
     </script>
