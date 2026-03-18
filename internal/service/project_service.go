@@ -88,3 +88,7 @@ func (s *ProjectService) DeleteProject(ctx context.Context, id uuid.UUID) error 
 	}
 	return err
 }
+
+func (s *ProjectService) SearchProjects(ctx context.Context, query string) ([]*models.Project, error) {
+	return s.repo.Search(ctx, query)
+}

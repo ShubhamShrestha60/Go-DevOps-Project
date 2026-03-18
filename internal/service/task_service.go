@@ -101,6 +101,14 @@ func (s *TaskService) GetStats(ctx context.Context) (map[string]interface{}, err
 	}, nil
 }
 
+func (s *TaskService) SearchTasks(ctx context.Context, query string) ([]*models.Task, error) {
+	return s.repo.Search(ctx, query)
+}
+
 func (s *TaskService) ListAllTasks(ctx context.Context) ([]*models.Task, error) {
 	return s.repo.ListAll(ctx)
+}
+
+func (s *TaskService) ListFiltered(ctx context.Context, projectID *uuid.UUID, priority string) ([]*models.Task, error) {
+	return s.repo.ListFiltered(ctx, projectID, priority)
 }

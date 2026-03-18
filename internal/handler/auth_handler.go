@@ -15,6 +15,10 @@ func NewAuthHandler(s *service.AuthService) *AuthHandler {
 	return &AuthHandler{service: s}
 }
 
+// @Param input body object true "Registration info"
+// @Success 201 {object} models.User
+// @Failure 400 {string} string "Bad Request"
+// @Router /api/auth/register [post]
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Username string `json:"username"`
@@ -38,6 +42,9 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+// @Success 200 {object} models.LoginResponse
+// @Failure 401 {string} string "Unauthorized"
+// @Router /api/auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Email    string `json:"email"`
@@ -70,6 +77,12 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Logout godoc
+// @Summary Logout
+// @Description Clear the authentication cookie
+// @Tags auth
+// @Success 200 {string} string "OK"
+// @Router /api/auth/logout [post]
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "token",

@@ -3,6 +3,8 @@ package postgres
 import (
 	"context"
 
+	"strconv"
+ 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/user/devpulse/internal/models"
@@ -26,9 +28,12 @@ func (r *taskRepo) Create(ctx context.Context, t *models.Task) error {
 
 func (r *taskRepo) GetByID(ctx context.Context, id uuid.UUID) (*models.Task, error) {
 	t := &models.Task{}
-	query := `SELECT id, project_id, title, description, status, priority, assigned_to, due_date, created_at, updated_at FROM tasks WHERE id = $1`
+	query := `SELECT t.id, t.project_id, t.title, t.description, t.status, t.priority, t.assigned_to, u.full_name, t.due_date, t.created_at, t.updated_at 
+              FROM tasks t 
+              LEFT JOIN users u ON t.assigned_to = u.id 
+              WHERE t.id = $1`
 	err := r.pool.QueryRow(ctx, query, id).
-		Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.DueDate, &t.CreatedAt, &t.UpdatedAt)
+		Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.AssignedToName, &t.DueDate, &t.CreatedAt, &t.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +41,10 @@ func (r *taskRepo) GetByID(ctx context.Context, id uuid.UUID) (*models.Task, err
 }
 
 func (r *taskRepo) ListByProject(ctx context.Context, projectID uuid.UUID) ([]*models.Task, error) {
-	query := `SELECT id, project_id, title, description, status, priority, assigned_to, due_date, created_at, updated_at FROM tasks WHERE project_id = $1`
+	query := `SELECT t.id, t.project_id, t.title, t.description, t.status, t.priority, t.assigned_to, u.full_name, t.due_date, t.created_at, t.updated_at 
+              FROM tasks t 
+              LEFT JOIN users u ON t.assigned_to = u.id 
+              WHERE t.project_id = $1`
 	rows, err := r.pool.Query(ctx, query, projectID)
 	if err != nil {
 		return nil, err
@@ -46,7 +54,7 @@ func (r *taskRepo) ListByProject(ctx context.Context, projectID uuid.UUID) ([]*m
 	var tasks []*models.Task
 	for rows.Next() {
 		t := &models.Task{}
-		if err := rows.Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.DueDate, &t.CreatedAt, &t.UpdatedAt); err != nil {
+		if err := rows.Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.AssignedToName, &t.DueDate, &t.CreatedAt, &t.UpdatedAt); err != nil {
 			return nil, err
 		}
 		tasks = append(tasks, t)
@@ -87,7 +95,9 @@ func (r *taskRepo) GetStats(ctx context.Context) (map[string]int, error) {
 }
 
 func (r *taskRepo) ListAll(ctx context.Context) ([]*models.Task, error) {
-	query := `SELECT id, project_id, title, description, status, priority, assigned_to, due_date, created_at, updated_at FROM tasks`
+	query := `SELECT t.id, t.project_id, t.title, t.description, t.status, t.priority, t.assigned_to, u.full_name, t.due_date, t.created_at, t.updated_at 
+              FROM tasks t 
+              LEFT JOIN users u ON t.assigned_to = u.id`
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
 		return nil, err
@@ -97,7 +107,64 @@ func (r *taskRepo) ListAll(ctx context.Context) ([]*models.Task, error) {
 	var tasks []*models.Task
 	for rows.Next() {
 		t := &models.Task{}
-		if err := rows.Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.DueDate, &t.CreatedAt, &t.UpdatedAt); err != nil {
+		if err := rows.Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.AssignedToName, &t.DueDate, &t.CreatedAt, &t.UpdatedAt); err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, t)
+	}
+	return tasks, nil
+}
+func (r *taskRepo) Search(ctx context.Context, query string) ([]*models.Task, error) {
+	sqlQuery := `SELECT t.id, t.project_id, t.title, t.description, t.status, t.priority, t.assigned_to, u.full_name, t.due_date, t.created_at, t.updated_at 
+                  FROM tasks t 
+                  LEFT JOIN users u ON t.assigned_to = u.id 
+                  WHERE t.title ILIKE $1 OR t.description ILIKE $1`
+	rows, err := r.pool.Query(ctx, sqlQuery, "%"+query+"%")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tasks []*models.Task
+	for rows.Next() {
+		t := &models.Task{}
+		if err := rows.Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.AssignedToName, &t.DueDate, &t.CreatedAt, &t.UpdatedAt); err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, t)
+	}
+	return tasks, nil
+}
+func (r *taskRepo) ListFiltered(ctx context.Context, projectID *uuid.UUID, priority string) ([]*models.Task, error) {
+	query := `SELECT t.id, t.project_id, t.title, t.description, t.status, t.priority, t.assigned_to, u.full_name, t.due_date, t.created_at, t.updated_at 
+              FROM tasks t 
+              LEFT JOIN users u ON t.assigned_to = u.id 
+              WHERE 1=1`
+	args := []interface{}{}
+	argIdx := 1
+
+	if projectID != nil {
+		query += ` AND t.project_id = $` + strconv.Itoa(argIdx)
+		args = append(args, *projectID)
+		argIdx++
+	}
+
+	if priority != "" {
+		query += ` AND t.priority = $` + strconv.Itoa(argIdx)
+		args = append(args, priority)
+		argIdx++
+	}
+
+	rows, err := r.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tasks []*models.Task
+	for rows.Next() {
+		t := &models.Task{}
+		if err := rows.Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.AssignedToName, &t.DueDate, &t.CreatedAt, &t.UpdatedAt); err != nil {
 			return nil, err
 		}
 		tasks = append(tasks, t)

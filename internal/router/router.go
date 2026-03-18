@@ -6,6 +6,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/swaggo/http-swagger"
+	_ "github.com/user/devpulse/docs"
 	"github.com/user/devpulse/internal/handler"
 	"github.com/user/devpulse/internal/middleware"
 )
@@ -17,6 +19,7 @@ func New(
 	taskHandler *handler.TaskHandler,
 	userHandler *handler.UserHandler,
 	activityHandler *handler.ActivityHandler,
+	commentHandler *handler.CommentHandler,
 	healthHandler *handler.HealthHandler,
 	dashboardHandler *handler.DashboardHandler,
 ) *chi.Mux {
@@ -36,6 +39,7 @@ func New(
 	r.Get("/healthz", healthHandler.Healthz)
 	r.Get("/readyz", healthHandler.Readyz)
 	r.Handle("/metrics", promhttp.Handler())
+	r.Get("/swagger/*", httpSwagger.WrapHandler)
 
 	// Auth (Public)
 	r.Post("/api/auth/register", authHandler.Register)
@@ -57,14 +61,19 @@ func New(
 
 		r.Route("/api/tasks", func(r chi.Router) {
 			r.Get("/stats", taskHandler.Stats)
+			r.Get("/export", taskHandler.ExportCSV)
 			r.Post("/", taskHandler.Create)
 			r.Get("/", taskHandler.List)
 			r.Get("/{id}", taskHandler.Get)
 			r.Put("/{id}", taskHandler.Update)
 			r.Delete("/{id}", taskHandler.Delete)
+			r.Post("/{taskID}/comments", commentHandler.Create)
+			r.Get("/{taskID}/comments", commentHandler.List)
 		})
 
 		r.Get("/api/users", userHandler.List)
+		r.Get("/api/users/profile", userHandler.GetProfile)
+		r.Put("/api/users/profile", userHandler.UpdateProfile)
 		r.Get("/api/activities", activityHandler.List)
 	})
 

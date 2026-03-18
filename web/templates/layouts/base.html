@@ -36,6 +36,12 @@
                         <span>Tasks</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="/profile" class="nav-link" id="nav-profile">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
             </ul>
 
             <div class="user-section">
@@ -50,6 +56,12 @@
         <main class="main-content">
             <header class="top-bar">
                 <h1 id="page-title">Dashboard</h1>
+                <div class="search-container" style="flex: 1; max-width: 400px; margin: 0 40px">
+                    <div style="position: relative">
+                        <i class="fas fa-search" style="position: absolute; left: 16px; top: 12px; color: var(--text-muted)"></i>
+                        <input type="text" id="global-search" class="form-control" placeholder="Search tasks, projects..." style="padding-left: 44px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 12px">
+                    </div>
+                </div>
                 <div class="user-profile">
                     <span id="user-name">Loading...</span>
                     <!-- Placeholder for image generation if needed later -->

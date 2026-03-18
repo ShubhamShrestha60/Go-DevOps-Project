@@ -70,3 +70,8 @@ func (r *userRepo) ListAll(ctx context.Context) ([]*models.User, error) {
 	}
 	return users, nil
 }
+func (r *userRepo) Delete(ctx context.Context, id uuid.UUID) error {
+	query := `DELETE FROM users WHERE id = $1`
+	_, err := r.pool.Exec(ctx, query, id)
+	return err
+}

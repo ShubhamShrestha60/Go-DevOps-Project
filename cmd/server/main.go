@@ -18,6 +18,24 @@ import (
 	"go.uber.org/zap"
 )
 
+// @title DevPulse API
+// @version 1.0
+// @description Production-grade Project Management API with collaboration features.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:8080
+// @BasePath /
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+
 func main() {
 	// 1. Load Config
 	cfg := config.Load()
@@ -41,13 +59,15 @@ func main() {
 	projectRepo := postgres.NewProjectRepository(db.Pool)
 	taskRepo := postgres.NewTaskRepository(db.Pool)
 	activityRepo := postgres.NewActivityRepository(db.Pool)
+	commentRepo := postgres.NewCommentRepository(db.Pool)
 
 	// 5. Initialize Services
 	authService := service.NewAuthService(userRepo, cfg.Auth.JWTSecret, cfg.Auth.JWTExpiryH, cfg.Auth.AdminPassword)
 	projectService := service.NewProjectService(projectRepo, activityRepo)
 	taskService := service.NewTaskService(taskRepo, activityRepo)
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, activityRepo)
 	activityService := service.NewActivityService(activityRepo)
+	commentService := service.NewCommentService(commentRepo, activityRepo)
 
 	// 6. Initialize Handlers
 	authHandler := handler.NewAuthHandler(authService)
@@ -55,6 +75,7 @@ func main() {
 	taskHandler := handler.NewTaskHandler(taskService)
 	userHandler := handler.NewUserHandler(userService)
 	activityHandler := handler.NewActivityHandler(activityService)
+	commentHandler := handler.NewCommentHandler(commentService)
 	healthHandler := handler.NewHealthHandler(db)
 	dashboardHandler := handler.NewDashboardHandler()
 
@@ -62,7 +83,7 @@ func main() {
 	mw := middleware.New(logger, authService)
 
 	// 8. Initialize Router
-	r := router.New(mw, authHandler, projectHandler, taskHandler, userHandler, activityHandler, healthHandler, dashboardHandler)
+	r := router.New(mw, authHandler, projectHandler, taskHandler, userHandler, activityHandler, commentHandler, healthHandler, dashboardHandler)
 
 	// 9. Start Server with Graceful Shutdown
 	srv := &http.Server{

@@ -71,3 +71,23 @@ func (r *projectRepo) GetStats(ctx context.Context) (int, error) {
 	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM projects").Scan(&count)
 	return count, err
 }
+
+func (r *projectRepo) Search(ctx context.Context, query string) ([]*models.Project, error) {
+	sqlQuery := `SELECT id, name, description, owner_id, created_at, updated_at FROM projects 
+                 WHERE name ILIKE $1 OR description ILIKE $1`
+	rows, err := r.pool.Query(ctx, sqlQuery, "%"+query+"%")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var projects []*models.Project
+	for rows.Next() {
+		p := &models.Project{}
+		if err := rows.Scan(&p.ID, &p.Name, &p.Description, &p.OwnerID, &p.CreatedAt, &p.UpdatedAt); err != nil {
+			return nil, err
+		}
+		projects = append(projects, p)
+	}
+	return projects, nil
+}

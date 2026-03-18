@@ -33,10 +33,11 @@ type Task struct {
 	Description string    `json:"description"`
 	Status      string    `json:"status"`   // todo, in-progress, review, done
 	Priority    string    `json:"priority"` // low, medium, high, urgent
-	AssignedTo  *uuid.UUID `json:"assigned_to,omitempty"`
-	DueDate     *time.Time `json:"due_date,omitempty"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
+	AssignedTo      *uuid.UUID `json:"assigned_to,omitempty"`
+	AssignedToName  string     `json:"assigned_to_name,omitempty"`
+	DueDate         *time.Time `json:"due_date,omitempty"`
+	CreatedAt       time.Time  `json:"created_at"`
+	UpdatedAt       time.Time  `json:"updated_at"`
 }
 
 type ActivityLog struct {
@@ -47,4 +48,27 @@ type ActivityLog struct {
 	EntityID   uuid.UUID   `json:"entity_id"`
 	Details    interface{} `json:"details"`
 	CreatedAt  time.Time   `json:"created_at"`
+}
+
+type Comment struct {
+	ID        uuid.UUID `json:"id"`
+	TaskID    uuid.UUID `json:"task_id"`
+	UserID    uuid.UUID `json:"user_id"`
+	UserName  string    `json:"user_name"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type TaskStats struct {
+	TotalTasks int            `json:"total_tasks"`
+	Statuses   map[string]int `json:"statuses"`
+}
+
+type ProjectStats struct {
+	TotalProjects int `json:"total_projects"`
+}
+
+type LoginResponse struct {
+	Token string `json:"token"`
+	User  User   `json:"user"`
 }
