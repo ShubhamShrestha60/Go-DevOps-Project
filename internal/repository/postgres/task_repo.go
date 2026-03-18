@@ -2,9 +2,8 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 
-	"strconv"
- 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/user/devpulse/internal/models"
@@ -28,12 +27,13 @@ func (r *taskRepo) Create(ctx context.Context, t *models.Task) error {
 
 func (r *taskRepo) GetByID(ctx context.Context, id uuid.UUID) (*models.Task, error) {
 	t := &models.Task{}
-	query := `SELECT t.id, t.project_id, t.title, t.description, t.status, t.priority, t.assigned_to, u.full_name, t.due_date, t.created_at, t.updated_at 
+	query := `SELECT t.id, t.project_id, t.title, COALESCE(t.description, ''), t.status, t.priority, t.assigned_to, COALESCE(u.full_name, ''), t.due_date, t.created_at, t.updated_at, p.name as project_name
               FROM tasks t 
+              JOIN projects p ON t.project_id = p.id
               LEFT JOIN users u ON t.assigned_to = u.id 
               WHERE t.id = $1`
 	err := r.pool.QueryRow(ctx, query, id).
-		Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.AssignedToName, &t.DueDate, &t.CreatedAt, &t.UpdatedAt)
+		Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.AssignedToName, &t.DueDate, &t.CreatedAt, &t.UpdatedAt, &t.ProjectName)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (r *taskRepo) GetByID(ctx context.Context, id uuid.UUID) (*models.Task, err
 }
 
 func (r *taskRepo) ListByProject(ctx context.Context, projectID uuid.UUID) ([]*models.Task, error) {
-	query := `SELECT t.id, t.project_id, t.title, t.description, t.status, t.priority, t.assigned_to, u.full_name, t.due_date, t.created_at, t.updated_at 
+	query := `SELECT t.id, t.project_id, t.title, COALESCE(t.description, ''), t.status, t.priority, t.assigned_to, COALESCE(u.full_name, ''), t.due_date, t.created_at, t.updated_at 
               FROM tasks t 
               LEFT JOIN users u ON t.assigned_to = u.id 
               WHERE t.project_id = $1`
@@ -94,67 +94,73 @@ func (r *taskRepo) GetStats(ctx context.Context) (map[string]int, error) {
 	return stats, nil
 }
 
-func (r *taskRepo) ListAll(ctx context.Context) ([]*models.Task, error) {
-	query := `SELECT t.id, t.project_id, t.title, t.description, t.status, t.priority, t.assigned_to, u.full_name, t.due_date, t.created_at, t.updated_at 
+func (r *taskRepo) ListAll(ctx context.Context, ownerID uuid.UUID) ([]*models.Task, error) {
+	query := `SELECT t.id, t.project_id, t.title, COALESCE(t.description, ''), t.status, t.priority, t.assigned_to, COALESCE(u.full_name, ''), t.due_date, t.created_at, t.updated_at, p.name as project_name
               FROM tasks t 
-              LEFT JOIN users u ON t.assigned_to = u.id`
-	rows, err := r.pool.Query(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var tasks []*models.Task
-	for rows.Next() {
-		t := &models.Task{}
-		if err := rows.Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.AssignedToName, &t.DueDate, &t.CreatedAt, &t.UpdatedAt); err != nil {
-			return nil, err
-		}
-		tasks = append(tasks, t)
-	}
-	return tasks, nil
-}
-func (r *taskRepo) Search(ctx context.Context, query string) ([]*models.Task, error) {
-	sqlQuery := `SELECT t.id, t.project_id, t.title, t.description, t.status, t.priority, t.assigned_to, u.full_name, t.due_date, t.created_at, t.updated_at 
-                  FROM tasks t 
-                  LEFT JOIN users u ON t.assigned_to = u.id 
-                  WHERE t.title ILIKE $1 OR t.description ILIKE $1`
-	rows, err := r.pool.Query(ctx, sqlQuery, "%"+query+"%")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var tasks []*models.Task
-	for rows.Next() {
-		t := &models.Task{}
-		if err := rows.Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.AssignedToName, &t.DueDate, &t.CreatedAt, &t.UpdatedAt); err != nil {
-			return nil, err
-		}
-		tasks = append(tasks, t)
-	}
-	return tasks, nil
-}
-func (r *taskRepo) ListFiltered(ctx context.Context, projectID *uuid.UUID, priority string) ([]*models.Task, error) {
-	query := `SELECT t.id, t.project_id, t.title, t.description, t.status, t.priority, t.assigned_to, u.full_name, t.due_date, t.created_at, t.updated_at 
-              FROM tasks t 
+              JOIN projects p ON t.project_id = p.id
               LEFT JOIN users u ON t.assigned_to = u.id 
-              WHERE 1=1`
-	args := []interface{}{}
-	argIdx := 1
+              WHERE p.owner_id = $1
+              ORDER BY t.created_at DESC`
+	rows, err := r.pool.Query(ctx, query, ownerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
+	var tasks []*models.Task
+	for rows.Next() {
+		t := &models.Task{}
+		if err := rows.Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.AssignedToName, &t.DueDate, &t.CreatedAt, &t.UpdatedAt, &t.ProjectName); err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, t)
+	}
+	return tasks, nil
+}
+func (r *taskRepo) Search(ctx context.Context, ownerID uuid.UUID, query string) ([]*models.Task, error) {
+	sqlQuery := `SELECT t.id, t.project_id, t.title, COALESCE(t.description, ''), t.status, t.priority, t.assigned_to, COALESCE(u.full_name, ''), t.due_date, t.created_at, t.updated_at, p.name as project_name
+              FROM tasks t 
+              JOIN projects p ON t.project_id = p.id
+              LEFT JOIN users u ON t.assigned_to = u.id 
+              WHERE p.owner_id = $1 AND (t.title ILIKE $2 OR t.description ILIKE $2)
+              ORDER BY t.created_at DESC`
+	rows, err := r.pool.Query(ctx, sqlQuery, ownerID, "%"+query+"%")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tasks []*models.Task
+	for rows.Next() {
+		t := &models.Task{}
+		if err := rows.Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.AssignedToName, &t.DueDate, &t.CreatedAt, &t.UpdatedAt, &t.ProjectName); err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, t)
+	}
+	return tasks, nil
+}
+func (r *taskRepo) ListFiltered(ctx context.Context, ownerID uuid.UUID, projectID *uuid.UUID, priority string) ([]*models.Task, error) {
+	query := `SELECT t.id, t.project_id, t.title, COALESCE(t.description, ''), t.status, t.priority, t.assigned_to, COALESCE(u.full_name, ''), t.due_date, t.created_at, t.updated_at, p.name as project_name
+              FROM tasks t 
+              JOIN projects p ON t.project_id = p.id
+              LEFT JOIN users u ON t.assigned_to = u.id 
+              WHERE p.owner_id = $1`
+	args := []interface{}{ownerID}
+	
 	if projectID != nil {
-		query += ` AND t.project_id = $` + strconv.Itoa(argIdx)
+		query += " AND t.project_id = $2"
 		args = append(args, *projectID)
-		argIdx++
 	}
-
+	
+	paramIdx := len(args) + 1
 	if priority != "" {
-		query += ` AND t.priority = $` + strconv.Itoa(argIdx)
+		query += fmt.Sprintf(" AND t.priority = $%d", paramIdx)
 		args = append(args, priority)
-		argIdx++
 	}
-
+	
+	query += " ORDER BY t.created_at DESC"
+	
 	rows, err := r.pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
@@ -164,7 +170,7 @@ func (r *taskRepo) ListFiltered(ctx context.Context, projectID *uuid.UUID, prior
 	var tasks []*models.Task
 	for rows.Next() {
 		t := &models.Task{}
-		if err := rows.Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.AssignedToName, &t.DueDate, &t.CreatedAt, &t.UpdatedAt); err != nil {
+		if err := rows.Scan(&t.ID, &t.ProjectID, &t.Title, &t.Description, &t.Status, &t.Priority, &t.AssignedTo, &t.AssignedToName, &t.DueDate, &t.CreatedAt, &t.UpdatedAt, &t.ProjectName); err != nil {
 			return nil, err
 		}
 		tasks = append(tasks, t)

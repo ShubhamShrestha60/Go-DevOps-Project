@@ -26,9 +26,13 @@ func (r *projectRepo) Create(ctx context.Context, p *models.Project) error {
 
 func (r *projectRepo) GetByID(ctx context.Context, id uuid.UUID) (*models.Project, error) {
 	p := &models.Project{}
-	query := `SELECT id, name, description, owner_id, created_at, updated_at FROM projects WHERE id = $1`
+	query := `SELECT p.id, p.name, COALESCE(p.description, ''), p.owner_id, p.created_at, p.updated_at, COUNT(t.id) as task_count 
+              FROM projects p 
+              LEFT JOIN tasks t ON p.id = t.project_id 
+              WHERE p.id = $1 
+              GROUP BY p.id`
 	err := r.pool.QueryRow(ctx, query, id).
-		Scan(&p.ID, &p.Name, &p.Description, &p.OwnerID, &p.CreatedAt, &p.UpdatedAt)
+		Scan(&p.ID, &p.Name, &p.Description, &p.OwnerID, &p.CreatedAt, &p.UpdatedAt, &p.TaskCount)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +40,12 @@ func (r *projectRepo) GetByID(ctx context.Context, id uuid.UUID) (*models.Projec
 }
 
 func (r *projectRepo) ListByOwner(ctx context.Context, ownerID uuid.UUID) ([]*models.Project, error) {
-	query := `SELECT id, name, description, owner_id, created_at, updated_at FROM projects WHERE owner_id = $1`
+	query := `SELECT p.id, p.name, COALESCE(p.description, ''), p.owner_id, p.created_at, p.updated_at, COUNT(t.id) as task_count 
+              FROM projects p 
+              LEFT JOIN tasks t ON p.id = t.project_id 
+              WHERE p.owner_id = $1 
+              GROUP BY p.id
+              ORDER BY p.created_at DESC`
 	rows, err := r.pool.Query(ctx, query, ownerID)
 	if err != nil {
 		return nil, err
@@ -46,7 +55,7 @@ func (r *projectRepo) ListByOwner(ctx context.Context, ownerID uuid.UUID) ([]*mo
 	var projects []*models.Project
 	for rows.Next() {
 		p := &models.Project{}
-		if err := rows.Scan(&p.ID, &p.Name, &p.Description, &p.OwnerID, &p.CreatedAt, &p.UpdatedAt); err != nil {
+		if err := rows.Scan(&p.ID, &p.Name, &p.Description, &p.OwnerID, &p.CreatedAt, &p.UpdatedAt, &p.TaskCount); err != nil {
 			return nil, err
 		}
 		projects = append(projects, p)
@@ -73,7 +82,7 @@ func (r *projectRepo) GetStats(ctx context.Context) (int, error) {
 }
 
 func (r *projectRepo) Search(ctx context.Context, query string) ([]*models.Project, error) {
-	sqlQuery := `SELECT id, name, description, owner_id, created_at, updated_at FROM projects 
+	sqlQuery := `SELECT id, name, COALESCE(description, ''), owner_id, created_at, updated_at FROM projects 
                  WHERE name ILIKE $1 OR description ILIKE $1`
 	rows, err := r.pool.Query(ctx, sqlQuery, "%"+query+"%")
 	if err != nil {

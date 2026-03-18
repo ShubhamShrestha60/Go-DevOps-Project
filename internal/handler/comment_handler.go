@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/user/devpulse/internal/middleware"
 	"github.com/user/devpulse/internal/service"
 )
 
@@ -33,9 +34,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// For now, using a placeholder user ID (Admin) if not available in context
-	// In a real app, this should come from context
-	userID := uuid.Nil // Default or get from context if middleware sets it
+	userID := middleware.GetUserID(r.Context())
 
 	comment, err := h.service.AddComment(r.Context(), taskID, userID, input.Content)
 	if err != nil {

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | DevPulse</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .login-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .login-card {
+            width: 400px;
+            padding: 40px;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .login-header i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body class="login-page">
+    <div class="login-card glass glass-card">
+        <div class="login-header">
+            <i class="fas fa-pulse"></i>
+            <h2>Create account</h2>
+            <p class="form-label" style="text-align: center">Join the production-grade team</p>
+        </div>
+
+        <form id="register-form">
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="reg-fullname" class="form-control" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" id="reg-username" class="form-control" placeholder="johndoe" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" id="reg-email" class="form-control" placeholder="name@company.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" id="reg-password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px">Sign Up</button>
+        </form>
+
+        <div style="margin-top: 24px; text-align: center; font-size: 14px; color: var(--text-muted)">
+            Already have an account? <a href="/login" style="color: var(--primary); text-decoration: none">Sign In</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById('reg-fullname').value;
+            const username = document.getElementById('reg-username').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ full_name: fullName, username, email, password })
+                });
+
+                if (res.ok) {
+                    alert('Registration successful! Please sign in.');
+                    window.location.href = '/login';
+                } else {
+                    const error = await res.text();
+                    alert('Registration failed: ' + error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Registration failed. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

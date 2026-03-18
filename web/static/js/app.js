@@ -138,7 +138,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             container.innerHTML = '';
             if (!data || data.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); padding: 20px; text-align: center">No recent activity.</p>';
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-muted)">
+                        <i class="fas fa-stream" style="font-size: 24px; margin-bottom: 12px; opacity: 0.3"></i>
+                        <p style="font-size: 13px">No recent activity to show.</p>
+                    </div>`;
                 return;
             }
 
@@ -157,9 +161,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; color: ${colorMap[act.action] || 'white'}">
                         <i class="fas ${iconMap[act.entity_type] || 'fa-info-circle'}"></i>
                     </div>
-                    <div>
-                        <div style="font-size: 13px; font-weight: 500">${act.details}</div>
-                        <div style="font-size: 11px; color: var(--text-muted)">${new Date(act.created_at).toLocaleString()}</div>
+                    <div style="flex: 1">
+                        <div style="font-size: 13px; font-weight: 500">
+                            <span style="color: var(--primary); font-weight: 600">${act.user_name}</span> ${act.details.toLowerCase().includes(act.user_name.toLowerCase()) ? act.details.substring(act.details.indexOf(':') + 1).trim() : act.details}
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-top: 8px">
+                        <i class="far fa-calendar-alt"></i> ${window.formatDate(act.created_at)}
+                    </div>
                     </div>
                 `;
                 container.appendChild(item);
@@ -181,7 +189,15 @@ document.addEventListener('DOMContentLoaded', () => {
             
             projectList.innerHTML = '';
             if (!data || data.length === 0) {
-                projectList.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted)">No projects yet. Create one to get started!</div>';
+                projectList.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: var(--text-muted)">
+                        <i class="fas fa-rocket" style="font-size: 48px; margin-bottom: 20px; opacity: 0.1"></i>
+                        <h3>No projects found</h3>
+                        <p style="margin-top: 8px">Create your first project to start managing tasks with your team.</p>
+                        <button class="btn btn-primary" onclick="showModal('project-modal')" style="margin-top: 24px">
+                            <i class="fas fa-plus"></i> Create Project
+                        </button>
+                    </div>`;
                 return;
             }
 
@@ -193,17 +209,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(79, 70, 229, 0.1); border: 1px solid var(--primary); display: flex; align-items: center; justify-content: center; color: var(--primary)">
                             <i class="fas fa-rocket"></i>
                         </div>
-                        <button onclick="deleteProject('${p.id}')" class="btn btn-ghost" title="Delete Project" style="color: var(--danger); padding: 4px; opacity: 0.6; transition: opacity 0.2s">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                        <div style="display: flex; gap: 8px; align-items: center">
+                            <div style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.2)">
+                                ${p.task_count || 0} Tasks
+                            </div>
+                            <button onclick="deleteProject('${p.id}')" class="btn btn-ghost" title="Delete Project" style="color: var(--danger); padding: 4px; opacity: 0.6; transition: opacity 0.2s; background: transparent; border: none; cursor: pointer">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
                     </div>
                     <h3 style="margin-bottom: 8px">${p.name}</h3>
-                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px; min-height: 40px">${p.description || 'No description provided.'}</p>
-                    <div style="display: flex; justify-content: space-between; align-items: center">
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 65%"></div>
-                        </div>
-                        <span style="font-size: 12px; font-weight: 600">65%</span>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.5; height: 42px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                        ${p.description || 'No description provided.'}
+                    </p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--glass-border); pt: 16px; margin-top: auto">
+                        <span style="font-size: 12px; color: var(--text-muted)">Created ${window.formatDate(p.created_at)}</span>
+                        <a href="/tasks?project_id=${p.id}" class="btn btn-primary" style="padding: 6px 14px; font-size: 12px">View Board</a>
                     </div>
                 `;
                 projectList.appendChild(card);
@@ -216,12 +237,14 @@ document.addEventListener('DOMContentLoaded', () => {
     window.saveProject = async () => {
         const name = document.getElementById('project-name').value;
         const description = document.getElementById('project-desc').value;
+        const btnId = 'save-project-btn';
 
         if (!name) {
             showToast('Project name is required', 'error');
             return;
         }
 
+        setLoading(btnId, true);
         try {
             const resp = await fetch('/api/projects', {
                 method: 'POST',
@@ -232,31 +255,51 @@ document.addEventListener('DOMContentLoaded', () => {
             if (resp.ok) {
                 showToast('Project created successfully');
                 hideModal('project-modal');
+                // Reset form
+                document.getElementById('project-name').value = '';
+                document.getElementById('project-desc').value = '';
                 fetchProjects();
             } else {
-                showToast('Failed to create project', 'error');
+                const errText = await resp.text();
+                showToast(`Failed: ${errText}`, 'error');
             }
         } catch (err) {
-            showToast('Error connecting to server', 'error');
+            showToast('Server connection failed', 'error');
+        } finally {
+            setLoading(btnId, false);
         }
     };
-
+ Riverside,
     // Tasks Logic
     window.updateTaskStatus = async (id, newStatus) => {
+        const btn = event?.target?.closest('button');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        }
+
         try {
             const resp = await fetch(`/api/tasks/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus })
             });
+
             if (resp.ok) {
-                showToast(`Status updated to ${newStatus}`);
-                fetchTasks();
-                fetchDashboardStats();
+                showToast(`Status updated to ${newStatus.replace('-', ' ')}`, 'success');
+                await Promise.all([fetchTasks(), fetchDashboardStats()]);
             } else {
-                showToast('Failed to update status', 'error');
+                const error = await resp.text();
+                showToast(`Update failed: ${error}`, 'error');
             }
-        } catch (err) { showToast('Error connecting to server', 'error'); }
+        } catch (err) { 
+            showToast('Connection error. Please try again.', 'error'); 
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = 'Next <i class="fas fa-arrow-right" style="font-size: 9px; margin-left: 4px"></i>';
+            }
+        }
     };
 
     async function deleteAccount() {
@@ -300,8 +343,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const task = await taskResp.json();
             const comments = await commentResp.json();
 
-            document.getElementById('detail-title').textContent = task.title;
-            document.getElementById('detail-desc').textContent = task.description || 'No description.';
+            document.getElementById('detail-title').innerText = task.title;
+            document.getElementById('detail-desc').innerText = task.description || 'No description provided.';
+            document.getElementById('detail-project').innerText = task.project_name || 'Individual Task';
             document.getElementById('detail-assignee').textContent = task.assigned_to_name || 'Unassigned';
             const priorityEl = document.getElementById('detail-priority');
             priorityEl.textContent = task.priority.toUpperCase();
@@ -332,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px">
                     <span style="font-weight: 600; color: var(--primary)">${c.user_name}</span>
-                    <span style="color: var(--text-muted)">${new Date(c.created_at).toLocaleString()}</span>
+                    <span style="color: var(--text-muted)">${window.formatDate(c.created_at)}</span>
                 </div>
                 <div style="font-size: 13px; line-height: 1.4">${c.content}</div>
             `;
@@ -451,6 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const description = document.getElementById('task-desc').value;
         const status = document.getElementById('task-status').value;
         const priority = document.getElementById('task-priority').value;
+        const btnId = 'save-task-btn';
 
         if (!project_id) {
             showToast('Please select a project', 'error');
@@ -461,6 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        setLoading(btnId, true);
         try {
             const resp = await fetch('/api/tasks', {
                 method: 'POST',
@@ -471,12 +517,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (resp.ok) {
                 showToast('Task created successfully');
                 hideModal('task-modal');
+                // Reset form
+                document.getElementById('task-title').value = '';
+                document.getElementById('task-desc').value = '';
                 fetchTasks();
             } else {
-                showToast('Failed to create task', 'error');
+                const errText = await resp.text();
+                showToast(`Failed: ${errText}`, 'error');
             }
         } catch (err) {
-            showToast('Error connecting to server', 'error');
+            showToast('Server connection failed', 'error');
+        } finally {
+            setLoading(btnId, false);
         }
     };
 
@@ -577,7 +629,8 @@ document.addEventListener('DOMContentLoaded', () => {
         toast.style.right = '24px';
         toast.style.zIndex = '1000';
         toast.style.padding = '12px 24px';
-        toast.style.borderLeft = `4px solid var(--${type})`;
+        const color = type === 'success' ? 'var(--success)' : (type === 'error' ? 'var(--danger)' : 'var(--warning)');
+        toast.style.borderLeft = `4px solid ${color}`;
         
         document.body.appendChild(toast);
         
@@ -585,5 +638,36 @@ document.addEventListener('DOMContentLoaded', () => {
             toast.style.opacity = '0';
             setTimeout(() => toast.remove(), 500);
         }, 3000);
+    };
+
+    window.formatDate = (dateStr) => {
+        if (!dateStr) return 'N/A';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric'
+        });
+    };
+
+    window.exportTasks = () => {
+        window.location.href = '/api/tasks/export';
+    };
+
+    // Expose remaining local functions to global window
+    window.deleteAccount = deleteAccount;
+
+    // Loading State Helper
+    window.setLoading = (elementId, isLoading) => {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        if (isLoading) {
+            el.dataset.oldContent = el.innerHTML;
+            el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            el.disabled = true;
+        } else {
+            el.innerHTML = el.dataset.oldContent || el.innerHTML;
+            el.disabled = false;
+        }
     };
 });

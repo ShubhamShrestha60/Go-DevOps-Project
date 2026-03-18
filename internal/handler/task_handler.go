@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/user/devpulse/internal/middleware"
 	"github.com/user/devpulse/internal/models"
 	"github.com/user/devpulse/internal/service"
 )
@@ -58,8 +59,13 @@ func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	task, err := h.service.CreateTask(r.Context(), projectID, input.Title, input.Description, input.Priority, assignedTo)
+	userID := middleware.GetUserID(r.Context())
+	task, err := h.service.CreateTask(r.Context(), userID, projectID, input.Title, input.Description, input.Priority, assignedTo)
 	if err != nil {
+		if err == models.ErrUnauthorized {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -83,12 +89,16 @@ func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("q")
 	projectIDStr := r.URL.Query().Get("project_id")
 	priority := r.URL.Query().Get("priority")
+	userID := middleware.GetUserID(r.Context())
 	
 	var tasks []*models.Task
 	var err error
 
 	if query != "" {
-		tasks, err = h.service.SearchTasks(r.Context(), query)
+		// Search tasks, but we need to ensure they belong to user's projects
+		// The service SearchTasks currently returns all. We should filter it.
+		// For brevity in this multi-edit, I'll filter by owner in service next.
+		tasks, err = h.service.SearchTasks(r.Context(), userID, query)
 	} else {
 		var projectID *uuid.UUID
 		if projectIDStr != "" {
@@ -99,7 +109,8 @@ func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
 			}
 			projectID = &id
 		}
-		tasks, err = h.service.ListFiltered(r.Context(), projectID, priority)
+		// ListFiltered should also filter by userID
+		tasks, err = h.service.ListFiltered(r.Context(), userID, projectID, priority)
 	}
 
 	if err != nil {
@@ -175,7 +186,12 @@ func (h *TaskHandler) Update(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := h.service.UpdateTask(r.Context(), id, input.Title, input.Description, input.Status, input.Priority, assignedTo); err != nil {
+	userID := middleware.GetUserID(r.Context())
+	if err := h.service.UpdateTask(r.Context(), userID, id, input.Title, input.Description, input.Status, input.Priority, assignedTo); err != nil {
+		if err == models.ErrUnauthorized {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -198,7 +214,12 @@ func (h *TaskHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.DeleteTask(r.Context(), id); err != nil {
+	userID := middleware.GetUserID(r.Context())
+	if err := h.service.DeleteTask(r.Context(), userID, id); err != nil {
+		if err == models.ErrUnauthorized {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -230,7 +251,8 @@ func (h *TaskHandler) Stats(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {string} string "CSV data"
 // @Router /api/tasks/export [get]
 func (h *TaskHandler) ExportCSV(w http.ResponseWriter, r *http.Request) {
-	tasks, err := h.service.ListAllTasks(r.Context())
+	userID := middleware.GetUserID(r.Context())
+	tasks, err := h.service.ListAllTasks(r.Context(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -1,9 +1,14 @@
 package models
 
 import (
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
+)
+
+var (
+	ErrUnauthorized = errors.New("unauthorized")
 )
 
 type User struct {
@@ -24,6 +29,7 @@ type Project struct {
 	OwnerID     uuid.UUID `json:"owner_id"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+	TaskCount   int       `json:"task_count"`
 }
 
 type Task struct {
@@ -38,11 +44,13 @@ type Task struct {
 	DueDate         *time.Time `json:"due_date,omitempty"`
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at"`
+	ProjectName     string     `json:"project_name,omitempty"`
 }
 
 type ActivityLog struct {
 	ID         uuid.UUID   `json:"id"`
 	UserID     uuid.UUID   `json:"user_id"`
+	UserName   string      `json:"user_name,omitempty"`
 	Action     string      `json:"action"`
 	EntityType string      `json:"entity_type"`
 	EntityID   uuid.UUID   `json:"entity_id"`

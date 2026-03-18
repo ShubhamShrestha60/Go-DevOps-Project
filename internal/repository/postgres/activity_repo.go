@@ -24,7 +24,10 @@ func (r *activityRepo) Create(ctx context.Context, l *models.ActivityLog) error 
 }
 
 func (r *activityRepo) List(ctx context.Context, limit int) ([]*models.ActivityLog, error) {
-	query := `SELECT id, user_id, action, entity_type, entity_id, details, created_at FROM activity_log ORDER BY created_at DESC LIMIT $1`
+	query := `SELECT l.id, l.user_id, COALESCE(u.full_name, u.username, 'System'), l.action, l.entity_type, l.entity_id, l.details, l.created_at 
+              FROM activity_log l 
+              LEFT JOIN users u ON l.user_id = u.id 
+              ORDER BY l.created_at DESC LIMIT $1`
 	rows, err := r.pool.Query(ctx, query, limit)
 	if err != nil {
 		return nil, err
@@ -34,7 +37,7 @@ func (r *activityRepo) List(ctx context.Context, limit int) ([]*models.ActivityL
 	var logs []*models.ActivityLog
 	for rows.Next() {
 		l := &models.ActivityLog{}
-		if err := rows.Scan(&l.ID, &l.UserID, &l.Action, &l.EntityType, &l.EntityID, &l.Details, &l.CreatedAt); err != nil {
+		if err := rows.Scan(&l.ID, &l.UserID, &l.UserName, &l.Action, &l.EntityType, &l.EntityID, &l.Details, &l.CreatedAt); err != nil {
 			return nil, err
 		}
 		logs = append(logs, l)

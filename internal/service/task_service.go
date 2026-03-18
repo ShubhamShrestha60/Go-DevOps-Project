@@ -10,14 +10,24 @@ import (
 
 type TaskService struct {
 	repo         repository.TaskRepository
+	projectRepo  repository.ProjectRepository
 	activityRepo repository.ActivityLogRepository
 }
 
-func NewTaskService(repo repository.TaskRepository, activityRepo repository.ActivityLogRepository) *TaskService {
-	return &TaskService{repo: repo, activityRepo: activityRepo}
+func NewTaskService(repo repository.TaskRepository, projectRepo repository.ProjectRepository, activityRepo repository.ActivityLogRepository) *TaskService {
+	return &TaskService{repo: repo, projectRepo: projectRepo, activityRepo: activityRepo}
 }
 
-func (s *TaskService) CreateTask(ctx context.Context, projectID uuid.UUID, title, description, priority string, assignedTo *uuid.UUID) (*models.Task, error) {
+func (s *TaskService) CreateTask(ctx context.Context, userID, projectID uuid.UUID, title, description, priority string, assignedTo *uuid.UUID) (*models.Task, error) {
+	// Verify project ownership
+	proj, err := s.projectRepo.GetByID(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	if proj.OwnerID != userID {
+		return nil, models.ErrUnauthorized
+	}
+
 	task := &models.Task{
 		ProjectID:   projectID,
 		Title:       title,
@@ -30,6 +40,7 @@ func (s *TaskService) CreateTask(ctx context.Context, projectID uuid.UUID, title
 		return nil, err
 	}
 	s.activityRepo.Create(ctx, &models.ActivityLog{
+		UserID:     userID,
 		Action:     "create",
 		EntityType: "task",
 		EntityID:   task.ID,
@@ -46,10 +57,19 @@ func (s *TaskService) ListProjectTasks(ctx context.Context, projectID uuid.UUID)
 	return s.repo.ListByProject(ctx, projectID)
 }
 
-func (s *TaskService) UpdateTask(ctx context.Context, id uuid.UUID, title, description, status, priority string, assignedTo *uuid.UUID) error {
+func (s *TaskService) UpdateTask(ctx context.Context, userID, id uuid.UUID, title, description, status, priority string, assignedTo *uuid.UUID) error {
 	t, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return err
+	}
+
+	// Verify project ownership
+	proj, err := s.projectRepo.GetByID(ctx, t.ProjectID)
+	if err != nil {
+		return err
+	}
+	if proj.OwnerID != userID {
+		return models.ErrUnauthorized
 	}
 
 	if title != "" { t.Title = title }
@@ -61,6 +81,7 @@ func (s *TaskService) UpdateTask(ctx context.Context, id uuid.UUID, title, descr
 	err = s.repo.Update(ctx, t)
 	if err == nil {
 		s.activityRepo.Create(ctx, &models.ActivityLog{
+			UserID:     userID,
 			Action:     "update",
 			EntityType: "task",
 			EntityID:   id,
@@ -70,11 +91,25 @@ func (s *TaskService) UpdateTask(ctx context.Context, id uuid.UUID, title, descr
 	return err
 }
 
-func (s *TaskService) DeleteTask(ctx context.Context, id uuid.UUID) error {
-	t, _ := s.repo.GetByID(ctx, id)
-	err := s.repo.Delete(ctx, id)
-	if err == nil && t != nil {
+func (s *TaskService) DeleteTask(ctx context.Context, userID, id uuid.UUID) error {
+	t, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// Verify project ownership
+	proj, err := s.projectRepo.GetByID(ctx, t.ProjectID)
+	if err != nil {
+		return err
+	}
+	if proj.OwnerID != userID {
+		return models.ErrUnauthorized
+	}
+
+	err = s.repo.Delete(ctx, id)
+	if err == nil {
 		s.activityRepo.Create(ctx, &models.ActivityLog{
+			UserID:     userID,
 			Action:     "delete",
 			EntityType: "task",
 			EntityID:   id,
@@ -101,14 +136,14 @@ func (s *TaskService) GetStats(ctx context.Context) (map[string]interface{}, err
 	}, nil
 }
 
-func (s *TaskService) SearchTasks(ctx context.Context, query string) ([]*models.Task, error) {
-	return s.repo.Search(ctx, query)
+func (s *TaskService) SearchTasks(ctx context.Context, userID uuid.UUID, query string) ([]*models.Task, error) {
+	return s.repo.Search(ctx, userID, query)
 }
 
-func (s *TaskService) ListAllTasks(ctx context.Context) ([]*models.Task, error) {
-	return s.repo.ListAll(ctx)
+func (s *TaskService) ListAllTasks(ctx context.Context, userID uuid.UUID) ([]*models.Task, error) {
+	return s.repo.ListAll(ctx, userID)
 }
 
-func (s *TaskService) ListFiltered(ctx context.Context, projectID *uuid.UUID, priority string) ([]*models.Task, error) {
-	return s.repo.ListFiltered(ctx, projectID, priority)
+func (s *TaskService) ListFiltered(ctx context.Context, userID uuid.UUID, projectID *uuid.UUID, priority string) ([]*models.Task, error) {
+	return s.repo.ListFiltered(ctx, userID, projectID, priority)
 }

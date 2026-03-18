@@ -30,12 +30,12 @@ type TaskRepository interface {
 	Create(ctx context.Context, task *models.Task) error
 	GetByID(ctx context.Context, id uuid.UUID) (*models.Task, error)
 	ListByProject(ctx context.Context, projectID uuid.UUID) ([]*models.Task, error)
-	ListAll(ctx context.Context) ([]*models.Task, error)
-	Search(ctx context.Context, query string) ([]*models.Task, error)
+	ListAll(ctx context.Context, ownerID uuid.UUID) ([]*models.Task, error)
+	Search(ctx context.Context, ownerID uuid.UUID, query string) ([]*models.Task, error)
 	Update(ctx context.Context, task *models.Task) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	GetStats(ctx context.Context) (map[string]int, error)
-	ListFiltered(ctx context.Context, projectID *uuid.UUID, priority string) ([]*models.Task, error)
+	ListFiltered(ctx context.Context, ownerID uuid.UUID, projectID *uuid.UUID, priority string) ([]*models.Task, error)
 }
 
 type ActivityLogRepository interface {

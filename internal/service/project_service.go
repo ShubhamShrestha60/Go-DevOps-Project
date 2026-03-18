@@ -54,11 +54,16 @@ func (s *ProjectService) ListUserProjects(ctx context.Context, userID uuid.UUID)
 	return s.repo.ListByOwner(ctx, userID)
 }
 
-func (s *ProjectService) UpdateProject(ctx context.Context, id uuid.UUID, name, description string) error {
+func (s *ProjectService) UpdateProject(ctx context.Context, userID, id uuid.UUID, name, description string) error {
 	p, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
+
+	if p.OwnerID != userID {
+		return models.ErrUnauthorized
+	}
+
 	p.Name = name
 	p.Description = description
 	err = s.repo.Update(ctx, p)
@@ -74,10 +79,18 @@ func (s *ProjectService) UpdateProject(ctx context.Context, id uuid.UUID, name, 
 	return err
 }
 
-func (s *ProjectService) DeleteProject(ctx context.Context, id uuid.UUID) error {
-	p, _ := s.repo.GetByID(ctx, id)
-	err := s.repo.Delete(ctx, id)
-	if err == nil && p != nil {
+func (s *ProjectService) DeleteProject(ctx context.Context, userID, id uuid.UUID) error {
+	p, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if p.OwnerID != userID {
+		return models.ErrUnauthorized
+	}
+
+	err = s.repo.Delete(ctx, id)
+	if err == nil {
 		s.activityRepo.Create(ctx, &models.ActivityLog{
 			UserID:     p.OwnerID,
 			Action:     "delete",

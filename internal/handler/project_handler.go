@@ -124,7 +124,12 @@ func (h *ProjectHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.UpdateProject(r.Context(), id, input.Name, input.Description); err != nil {
+	userID := middleware.GetUserID(r.Context())
+	if err := h.service.UpdateProject(r.Context(), userID, id, input.Name, input.Description); err != nil {
+		if err == models.ErrUnauthorized {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -140,7 +145,12 @@ func (h *ProjectHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.DeleteProject(r.Context(), id); err != nil {
+	userID := middleware.GetUserID(r.Context())
+	if err := h.service.DeleteProject(r.Context(), userID, id); err != nil {
+		if err == models.ErrUnauthorized {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

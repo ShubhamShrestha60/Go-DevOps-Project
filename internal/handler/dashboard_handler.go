@@ -25,3 +25,7 @@ func (h *DashboardHandler) Tasks(w http.ResponseWriter, r *http.Request) {
 func (h *DashboardHandler) Profile(w http.ResponseWriter, r *http.Request) {
 	RenderTemplate(w, "profile", nil)
 }
+
+func (h *DashboardHandler) Register(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "web/templates/pages/register.html")
+}

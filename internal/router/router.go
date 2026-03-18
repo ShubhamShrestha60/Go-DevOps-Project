@@ -81,6 +81,7 @@ func New(
 	r.Get("/login", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "web/templates/pages/login.html")
 	})
+	r.Get("/register", dashboardHandler.Register)
 
 	r.Group(func(r chi.Router) {
 		r.Use(mw.Auth)
