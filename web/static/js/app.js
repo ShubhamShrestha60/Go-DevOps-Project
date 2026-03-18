@@ -269,7 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
             setLoading(btnId, false);
         }
     };
- Riverside,
     // Tasks Logic
     window.updateTaskStatus = async (id, newStatus) => {
         const btn = event?.target?.closest('button');
