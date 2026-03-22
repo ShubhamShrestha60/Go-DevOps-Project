@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: devpulse-project
+  namespace: argocd
+  # Finalizer that ensures the project is not deleted unless all applications are gone
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Project for DevPulse Production Stack
+  # Allow all sources from this repository
+  sourceRepos:
+    - '*'
+  # Allow deployment to any namespace (usually restricted in production)
+  destinations:
+    - namespace: '*'
+      server: https://kubernetes.default.svc
+  # Allow all cluster-scoped and namespaced resources
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'

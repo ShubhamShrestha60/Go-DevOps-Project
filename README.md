@@ -41,9 +41,13 @@
 - **Docker**: Explore the multi-stage `Dockerfile` and `docker-compose.yml`.
 - **Helm**: Deploy as a production package:
    ```bash
-   helm install devpulse ./charts/devpulse
+   helm install devpulse ./helm/charts/devpulse
    ```
-- **Ingress**: Traefik is used for routing. Access via `devpulse.local` after adding to `/etc/hosts`.
+- **Argo CD (GitOps)**: Automated deployments are managed via Argo CD. Apply the manifests:
+   ```bash
+   kubectl apply -f argocd/
+   ```
+- **Ingress**: Traefik is used for routing. Access via `devpulse.local` after adding to your hosts file.
 - **Scaling**: Test HPA by putting load on the `/api` endpoints.
 - **Monitoring**: Check the `/metrics` endpoint and set up Grafana dashboards.
 
