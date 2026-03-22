@@ -1,0 +1,61 @@
+# Default values for devpulse.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 2
+
+image:
+  repository: devpulse
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+  hosts:
+    - host: devpulse.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+# Application Configuration
+config:
+  env: production
+  logLevel: info
+  jwtExpiryHours: 24
+
+# Database Configuration (Internal Postgres)
+postgres:
+  enabled: true
+  image: postgres:16-alpine
+  storage: 1Gi
+  dbName: devpulse
+  dbUser: postgres
+
+# Sensitive Data (Base64 encoded values should NOT be here in production; use external secrets)
+# These are placeholders for illustration.
+secrets:
+  dbPassword: "cG9zdGdyZXM=" # base64 for 'postgres'
+  jwtSecret: "c2VjcmV0LWtleS1jaGFuZ2UtbWUtYmVmb3JlLWRlcGxveQ=="

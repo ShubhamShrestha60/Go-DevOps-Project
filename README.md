@@ -39,8 +39,11 @@
 ## DevOps Practice Guide
 
 - **Docker**: Explore the multi-stage `Dockerfile` and `docker-compose.yml`.
-- **Kubernetes**: Run `kubectl apply -f k8s/` to deploy to a cluster.
-- **Helm**: Deploy as a package using `helm install devpulse helm/devpulse/`.
+- **Helm**: Deploy as a production package:
+   ```bash
+   helm install devpulse ./charts/devpulse
+   ```
+- **Ingress**: Traefik is used for routing. Access via `devpulse.local` after adding to `/etc/hosts`.
 - **Scaling**: Test HPA by putting load on the `/api` endpoints.
 - **Monitoring**: Check the `/metrics` endpoint and set up Grafana dashboards.
 
