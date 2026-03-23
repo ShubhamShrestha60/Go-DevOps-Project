@@ -58,11 +58,10 @@
      kubectl apply -f monitoring/prometheus/
      kubectl apply -f monitoring/grafana/
      kubectl apply -f monitoring/loki/
-     kubectl apply -f monitoring/middlewares.yaml
      kubectl apply -f monitoring/ingress.yaml
      ```
-     - **Grafana**: `https://grafana.local`
-     - **Prometheus**: `https://prometheus.local`
+     - **Grafana**: `http://grafana.local`
+     - **Prometheus**: `http://prometheus.local`
 - **Scaling**: Test HPA by putting load on the `/api` endpoints.
 - **Monitoring**: Check the `/metrics` endpoint and set up Grafana dashboards.
 

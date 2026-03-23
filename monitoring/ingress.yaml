@@ -4,16 +4,9 @@ metadata:
   name: monitoring-ingress
   namespace: monitoring
   annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web, websecure
-    traefik.ingress.kubernetes.io/router.tls: "true"
-    # Allow embedding and cross-origin for local dev convenience
-    traefik.ingress.kubernetes.io/router.middlewares: monitoring-cors-headers@kubernetescrd
+    traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
   ingressClassName: traefik
-  tls:
-  - hosts:
-    - prometheus.local
-    - grafana.local
   rules:
     - host: prometheus.local
       http:
