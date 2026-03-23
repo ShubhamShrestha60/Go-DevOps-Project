@@ -56,11 +56,15 @@
      ```bash
      kubectl apply -f monitoring/prometheus/
      kubectl apply -f monitoring/grafana/
+     kubectl apply -f monitoring/ingress.yaml
      ```
+     - **Grafana**: `http://grafana.local`
+     - **Prometheus**: `http://prometheus.local`
    - **ELK Stack**: Centralized log search and analysis.
      ```bash
      kubectl apply -f monitoring/elk/
      ```
+     - **Kibana**: `http://kibana.local`
 - **Scaling**: Test HPA by putting load on the `/api` endpoints.
 - **Monitoring**: Check the `/metrics` endpoint and set up Grafana dashboards.
 
