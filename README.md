@@ -51,6 +51,16 @@
    - **Default Credentials**: `admin` / Password retrieved via:
      `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d`
 - **Ingress**: Traefik is used for routing. Access via `devpulse.local` after adding to your hosts file.
+- **Monitoring & Logging**:
+   - **Prometheus/Grafana**: Full metric extraction and visualization.
+     ```bash
+     kubectl apply -f monitoring/prometheus/
+     kubectl apply -f monitoring/grafana/
+     ```
+   - **ELK Stack**: Centralized log search and analysis.
+     ```bash
+     kubectl apply -f monitoring/elk/
+     ```
 - **Scaling**: Test HPA by putting load on the `/api` endpoints.
 - **Monitoring**: Check the `/metrics` endpoint and set up Grafana dashboards.
 
