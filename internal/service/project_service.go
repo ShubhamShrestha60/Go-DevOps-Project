@@ -26,7 +26,7 @@ func (s *ProjectService) CreateProject(ctx context.Context, name, description st
 	if err := s.repo.Create(ctx, project); err != nil {
 		return nil, err
 	}
-	s.activityRepo.Create(ctx, &models.ActivityLog{
+	_ = s.activityRepo.Create(ctx, &models.ActivityLog{
 		UserID:     ownerID,
 		Action:     "create",
 		EntityType: "project",
@@ -68,7 +68,7 @@ func (s *ProjectService) UpdateProject(ctx context.Context, userID, id uuid.UUID
 	p.Description = description
 	err = s.repo.Update(ctx, p)
 	if err == nil {
-		s.activityRepo.Create(ctx, &models.ActivityLog{
+		_ = s.activityRepo.Create(ctx, &models.ActivityLog{
 			UserID:     p.OwnerID,
 			Action:     "update",
 			EntityType: "project",

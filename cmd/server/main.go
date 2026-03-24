@@ -45,7 +45,7 @@ func main() {
 	if cfg.Env == "development" {
 		logger, _ = zap.NewDevelopment()
 	}
-	defer logger.Sync()
+	defer func() { _ = logger.Sync() }()
 
 	// 3. Initialize Database
 	db, err := database.New(cfg)

@@ -28,7 +28,7 @@ func (s *CommentService) AddComment(ctx context.Context, taskID, userID uuid.UUI
 	}
 
 	// Log Activity
-	s.activityRepo.Create(ctx, &models.ActivityLog{
+	_ = s.activityRepo.Create(ctx, &models.ActivityLog{
 		UserID:     userID,
 		Action:     "create",
 		EntityType: "comment",

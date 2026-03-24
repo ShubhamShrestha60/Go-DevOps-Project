@@ -264,9 +264,9 @@ func (h *TaskHandler) ExportCSV(w http.ResponseWriter, r *http.Request) {
 	writer := csv.NewWriter(w)
 	defer writer.Flush()
 
-	writer.Write([]string{"ID", "Title", "Description", "Status", "Priority", "Created At"})
+	_ = writer.Write([]string{"ID", "Title", "Description", "Status", "Priority", "Created At"})
 	for _, t := range tasks {
-		writer.Write([]string{
+		_ = writer.Write([]string{
 			t.ID.String(),
 			t.Title,
 			t.Description,

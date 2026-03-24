@@ -23,5 +23,5 @@ func (h *ActivityHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(activities)
+	_ = json.NewEncoder(w).Encode(activities)
 }

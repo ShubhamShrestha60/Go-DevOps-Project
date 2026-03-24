@@ -73,3 +73,4 @@ Built for production-grade DevOps practice.
 ![Page 1](image-1.png)
 ![Page 2](image-2.png)
 ![Page 3](image-3.png)
+![Lint errors](image-6.png)
