@@ -78,7 +78,7 @@ func (m *Middleware) handleUnauthorized(w http.ResponseWriter, r *http.Request) 
 	if strings.HasPrefix(r.URL.Path, "/api/") {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		_ = w.Write([]byte(`{"error": "unauthorized"}`))
+		_, _ = w.Write([]byte(`{"error": "unauthorized"}`))
 		return
 	}
 	// Otherwise redirect to login page
