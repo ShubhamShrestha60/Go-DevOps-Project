@@ -40,12 +40,18 @@ spec:
             httpGet:
               path: /ready
               port: http
-            initialDelaySeconds: 45
+            initialDelaySeconds: 60
+            timeoutSeconds: 15
+            periodSeconds: 20
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /ready
               port: http
-            initialDelaySeconds: 15
+            initialDelaySeconds: 30
+            timeoutSeconds: 15
+            periodSeconds: 20
+            failureThreshold: 5
           volumeMounts:
             - name: config
               mountPath: /etc/loki
@@ -74,3 +80,4 @@ spec:
     - name: grpc
       port: 9095
       targetPort: 9095
+ Riverside,

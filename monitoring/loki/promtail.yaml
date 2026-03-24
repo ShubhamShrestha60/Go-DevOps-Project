@@ -53,12 +53,18 @@ spec:
             httpGet:
               path: /ready
               port: 9080
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
+            timeoutSeconds: 15
+            periodSeconds: 20
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /ready
               port: 9080
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
+            timeoutSeconds: 15
+            periodSeconds: 20
+            failureThreshold: 5
           volumeMounts:
             - name: config
               mountPath: /etc/promtail
@@ -115,4 +121,4 @@ subjects:
 - kind: ServiceAccount
   name: promtail
   namespace: monitoring
-
+ Riverside,

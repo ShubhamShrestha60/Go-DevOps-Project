@@ -31,8 +31,8 @@ spec:
             - "--storage.tsdb.wal-compression"
             - "--storage.tsdb.min-block-duration=2h"
             - "--web.enable-lifecycle"
-            - "--query.max-concurrency=2"
-            - "--query.max-samples=5000000"
+            - "--query.max-concurrency: 2"
+            - "--query.max-samples: 5000000"
           ports:
             - containerPort: 9090
           resources:
@@ -46,12 +46,18 @@ spec:
             httpGet:
               path: /-/healthy
               port: 9090
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
+            timeoutSeconds: 15
+            periodSeconds: 20
+            failureThreshold: 5
           readinessProbe:
             httpGet:
               path: /-/ready
               port: 9090
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
+            timeoutSeconds: 15
+            periodSeconds: 20
+            failureThreshold: 5
           volumeMounts:
             - name: config
               mountPath: /etc/prometheus/
