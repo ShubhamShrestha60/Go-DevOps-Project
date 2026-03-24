@@ -51,7 +51,7 @@ func (s *UserService) UpdateUser(ctx context.Context, id uuid.UUID, fullName, em
 	}
 
 	// Log Activity
-	s.activityRepo.Create(ctx, &models.ActivityLog{
+	_ = s.activityRepo.Create(ctx, &models.ActivityLog{
 		UserID:     id,
 		Action:     "update",
 		EntityType: "user",

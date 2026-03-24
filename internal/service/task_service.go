@@ -108,7 +108,7 @@ func (s *TaskService) DeleteTask(ctx context.Context, userID, id uuid.UUID) erro
 
 	err = s.repo.Delete(ctx, id)
 	if err == nil {
-		s.activityRepo.Create(ctx, &models.ActivityLog{
+		_ = s.activityRepo.Create(ctx, &models.ActivityLog{
 			UserID:     userID,
 			Action:     "delete",
 			EntityType: "task",
