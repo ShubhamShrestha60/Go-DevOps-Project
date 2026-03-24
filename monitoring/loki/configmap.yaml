@@ -34,7 +34,7 @@ data:
         cache_location: /loki/tsdb-cache
         shared_store: filesystem
       filesystem:
-        chunks_directory: /loki/chunks
+        directory: /loki/chunks
 
     compactor:
       working_directory: /loki/compactor
@@ -53,6 +53,4 @@ data:
       reject_old_samples_max_age: 168h
 
     query_range:
-      embedded_cache:
-        enabled: true
-        max_size_mb: 20
+      parallelise_shardable_queries: true
