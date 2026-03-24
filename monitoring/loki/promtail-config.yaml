@@ -29,19 +29,22 @@ data:
       kubernetes_sd_configs:
       - role: pod
       relabel_configs:
-      # Try to find 'app' label in various common forms
+      # 1. Set 'app' to pod name initially (broad fallback)
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: app
+      
+      # 2. Overwrite 'app' if more specific labels exist
       - source_labels: [__meta_kubernetes_pod_label_app]
         target_label: app
+        action: replace
       - source_labels: [__meta_kubernetes_pod_label_k8s_app]
         target_label: app
+        action: replace
       - source_labels: [__meta_kubernetes_pod_label_component]
         target_label: app
-      - source_labels: [app]
-        regex: ^$
         action: replace
-        source_labels: [__meta_kubernetes_pod_name]
-        target_label: app # Use pod name as fallback for app
       
+      # 3. Standard Metadata
       - source_labels: [__meta_kubernetes_namespace]
         target_label: namespace
       - source_labels: [__meta_kubernetes_pod_name]
@@ -50,6 +53,8 @@ data:
         target_label: container
       - source_labels: [__meta_kubernetes_pod_node_name]
         target_label: node
+      
+      # 4. Path Discovery
       - replacement: /var/log/pods/*$1/*.log
         separator: /
         source_labels: [__meta_kubernetes_pod_uid, __meta_kubernetes_pod_container_name]
