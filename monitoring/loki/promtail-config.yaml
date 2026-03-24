@@ -32,17 +32,20 @@ data:
       # 1. Set 'app' to pod name initially (broad fallback)
       - source_labels: [__meta_kubernetes_pod_name]
         target_label: app
-      
-      # 2. Overwrite 'app' if more specific labels exist
+
+      # 2. Overwrite 'app' ONLY IF specific labels exist (using regex to prevent wiping)
       - source_labels: [__meta_kubernetes_pod_label_app]
-        target_label: app
         action: replace
+        regex: (.+)
+        target_label: app
       - source_labels: [__meta_kubernetes_pod_label_k8s_app]
-        target_label: app
         action: replace
+        regex: (.+)
+        target_label: app
       - source_labels: [__meta_kubernetes_pod_label_component]
-        target_label: app
         action: replace
+        regex: (.+)
+        target_label: app
       
       # 3. Standard Metadata
       - source_labels: [__meta_kubernetes_namespace]
