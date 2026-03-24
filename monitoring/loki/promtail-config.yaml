@@ -29,11 +29,15 @@ data:
       kubernetes_sd_configs:
       - role: pod
       relabel_configs:
-      # 1. Set 'app' to pod name initially (broad fallback)
+      # 1. Set 'job' label explicitly
+      - replacement: kubernetes-pods
+        target_label: job
+
+      # 2. Set 'app' to pod name initially (broad fallback)
       - source_labels: [__meta_kubernetes_pod_name]
         target_label: app
 
-      # 2. Overwrite 'app' ONLY IF specific labels exist (using regex to prevent wiping)
+      # 3. Overwrite 'app' ONLY IF specific labels exist
       - source_labels: [__meta_kubernetes_pod_label_app]
         action: replace
         regex: (.+)
@@ -47,7 +51,7 @@ data:
         regex: (.+)
         target_label: app
       
-      # 3. Standard Metadata
+      # 4. Standard Metadata
       - source_labels: [__meta_kubernetes_namespace]
         target_label: namespace
       - source_labels: [__meta_kubernetes_pod_name]
@@ -57,7 +61,7 @@ data:
       - source_labels: [__meta_kubernetes_pod_node_name]
         target_label: node
       
-      # 4. Path Discovery
+      # 5. Path Discovery
       - replacement: /var/log/pods/*$1/*.log
         separator: /
         source_labels: [__meta_kubernetes_pod_uid, __meta_kubernetes_pod_container_name]
