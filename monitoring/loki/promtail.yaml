@@ -121,4 +121,3 @@ subjects:
 - kind: ServiceAccount
   name: promtail
   namespace: monitoring
- Riverside,
