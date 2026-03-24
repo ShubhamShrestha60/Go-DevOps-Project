@@ -7,12 +7,26 @@ spec:
   selector:
     matchLabels:
       app: promtail
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
   template:
     metadata:
       labels:
         app: promtail
     spec:
       serviceAccountName: promtail
+      tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
       containers:
         - name: promtail
           image: grafana/promtail:2.9.4
@@ -23,6 +37,28 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+          securityContext:
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 9080
+            initialDelaySeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 9080
+            initialDelaySeconds: 10
           volumeMounts:
             - name: config
               mountPath: /etc/promtail
@@ -32,13 +68,8 @@ spec:
             - name: docker
               mountPath: /var/lib/docker/containers
               readOnly: true
-          resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 100m
-              memory: 128Mi
+            - name: tmp
+              mountPath: /tmp
       volumes:
         - name: config
           configMap:
@@ -49,6 +80,8 @@ spec:
         - name: docker
           hostPath:
             path: /var/lib/docker/containers
+        - name: tmp
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: ServiceAccount

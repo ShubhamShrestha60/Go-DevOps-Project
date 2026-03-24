@@ -5,6 +5,8 @@ metadata:
   namespace: monitoring
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: loki
@@ -13,20 +15,37 @@ spec:
       labels:
         app: loki
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
       containers:
         - name: loki
           image: grafana/loki:2.9.4
           args:
             - "-config.file=/etc/loki/loki.yaml"
           ports:
-            - containerPort: 3100
+            - name: http
+              containerPort: 3100
+            - name: grpc
+              containerPort: 9095
           resources:
             requests:
               cpu: 50m
-              memory: 128Mi
+              memory: 64Mi
             limits:
               cpu: 200m
-              memory: 256Mi
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 45
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 15
           volumeMounts:
             - name: config
               mountPath: /etc/loki
@@ -37,7 +56,8 @@ spec:
           configMap:
             name: loki-config
         - name: storage
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: loki-storage
 ---
 apiVersion: v1
 kind: Service
@@ -48,5 +68,9 @@ spec:
   selector:
     app: loki
   ports:
-    - port: 3100
+    - name: http
+      port: 3100
       targetPort: 3100
+    - name: grpc
+      port: 9095
+      targetPort: 9095

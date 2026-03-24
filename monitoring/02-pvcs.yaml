@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-storage
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  # storageClassName: standard # Optional: Uncomment and set if needed
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-storage
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  # storageClassName: standard # Optional: Uncomment and set if needed
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: loki-storage
+  namespace: monitoring
+spec:
+  accessModes:
+    - ReadWriteOnce
+  # storageClassName: standard # Optional: Uncomment and set if needed
+  resources:
+    requests:
+      storage: 8Gi

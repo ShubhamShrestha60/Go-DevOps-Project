@@ -5,6 +5,8 @@ metadata:
   namespace: monitoring
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: prometheus
@@ -13,32 +15,60 @@ spec:
       labels:
         app: prometheus
     spec:
+      serviceAccountName: prometheus
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
       containers:
         - name: prometheus
           image: prom/prometheus:v2.51.0
           args:
             - "--config.file=/etc/prometheus/prometheus.yml"
             - "--storage.tsdb.path=/prometheus/"
+            - "--storage.tsdb.retention.time=7d"
+            - "--storage.tsdb.retention.size=8GB"
+            - "--storage.tsdb.wal-compression"
+            - "--storage.tsdb.min-block-duration=2h"
+            - "--web.enable-lifecycle"
+            - "--query.max-concurrency=2"
+            - "--query.max-samples=5000000"
           ports:
             - containerPort: 9090
           resources:
             requests:
-              cpu: 100m
-              memory: 256Mi
+              cpu: 50m
+              memory: 128Mi
             limits:
-              cpu: 200m
-              memory: 512Mi
+              cpu: 250m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9090
+            initialDelaySeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 9090
+            initialDelaySeconds: 10
           volumeMounts:
-            - name: prometheus-config
+            - name: config
               mountPath: /etc/prometheus/
-            - name: prometheus-storage
+            - name: rules
+              mountPath: /etc/prometheus/rules/
+            - name: storage
               mountPath: /prometheus/
       volumes:
-        - name: prometheus-config
+        - name: config
           configMap:
             name: prometheus-config
-        - name: prometheus-storage
-          emptyDir: {}
+        - name: rules
+          configMap:
+            name: prometheus-rules
+        - name: storage
+          persistentVolumeClaim:
+            claimName: prometheus-storage
 ---
 apiVersion: v1
 kind: Service
