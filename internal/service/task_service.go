@@ -39,7 +39,7 @@ func (s *TaskService) CreateTask(ctx context.Context, userID, projectID uuid.UUI
 	if err := s.repo.Create(ctx, task); err != nil {
 		return nil, err
 	}
-	s.activityRepo.Create(ctx, &models.ActivityLog{
+	_ = s.activityRepo.Create(ctx, &models.ActivityLog{
 		UserID:     userID,
 		Action:     "create",
 		EntityType: "task",
@@ -80,7 +80,7 @@ func (s *TaskService) UpdateTask(ctx context.Context, userID, id uuid.UUID, titl
 
 	err = s.repo.Update(ctx, t)
 	if err == nil {
-		s.activityRepo.Create(ctx, &models.ActivityLog{
+		_ = s.activityRepo.Create(ctx, &models.ActivityLog{
 			UserID:     userID,
 			Action:     "update",
 			EntityType: "task",

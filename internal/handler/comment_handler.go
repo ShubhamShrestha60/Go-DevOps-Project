@@ -44,7 +44,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(comment)
+	_ = json.NewEncoder(w).Encode(comment)
 }
 
 func (h *CommentHandler) List(w http.ResponseWriter, r *http.Request) {
@@ -62,5 +62,5 @@ func (h *CommentHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(comments)
+	_ = json.NewEncoder(w).Encode(comments)
 }

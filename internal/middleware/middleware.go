@@ -11,6 +11,13 @@ import (
 	"go.uber.org/zap"
 )
 
+type contextKey string
+
+const (
+	UserIDKey   contextKey = "user_id"
+	UserRoleKey contextKey = "user_role"
+)
+
 type Middleware struct {
 	logger      *zap.Logger
 	authService *service.AuthService
@@ -67,8 +74,8 @@ func (m *Middleware) Auth(next http.Handler) http.Handler {
 		}
 
 		// Store user info in context
-		ctx := context.WithValue(r.Context(), "user_id", userID)
-		ctx = context.WithValue(ctx, "user_role", role)
+		ctx := context.WithValue(r.Context(), UserIDKey, userID)
+		ctx = context.WithValue(ctx, UserRoleKey, role)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -86,9 +93,17 @@ func (m *Middleware) handleUnauthorized(w http.ResponseWriter, r *http.Request) 
 }
 
 func GetUserID(ctx context.Context) uuid.UUID {
-	id, ok := ctx.Value("user_id").(uuid.UUID)
+	id, ok := ctx.Value(UserIDKey).(uuid.UUID)
 	if !ok {
 		return uuid.Nil
 	}
 	return id
+}
+
+func GetUserRole(ctx context.Context) string {
+	role, ok := ctx.Value(UserRoleKey).(string)
+	if !ok {
+		return ""
+	}
+	return role
 }

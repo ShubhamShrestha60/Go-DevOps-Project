@@ -91,7 +91,7 @@ func (s *ProjectService) DeleteProject(ctx context.Context, userID, id uuid.UUID
 
 	err = s.repo.Delete(ctx, id)
 	if err == nil {
-		s.activityRepo.Create(ctx, &models.ActivityLog{
+		_ = s.activityRepo.Create(ctx, &models.ActivityLog{
 			UserID:     p.OwnerID,
 			Action:     "delete",
 			EntityType: "project",
