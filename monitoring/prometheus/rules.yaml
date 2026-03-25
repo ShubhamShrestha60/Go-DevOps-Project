@@ -42,6 +42,16 @@ data:
             for: 5m
             labels:
               severity: critical
+          - alert: DeploymentOffline
+            expr: kube_deployment_status_replicas_available == 0
+            for: 1m
+            labels:
+              severity: critical
+          - alert: PodRestarting
+            expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+            for: 2m
+            labels:
+              severity: warning
   monitoring-stack.rules.yaml: |
     groups:
       - name: monitoring-stack.rules
