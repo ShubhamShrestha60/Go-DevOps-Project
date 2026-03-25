@@ -8,13 +8,56 @@ data:
     global:
       resolve_timeout: 5m
 
+    # -------------------------------------------------------
+    # Routing tree
+    # -------------------------------------------------------
     route:
-      group_by: ['alertname', 'cluster', 'service']
+      group_by: ['alertname', 'namespace', 'severity']
       group_wait: 30s
       group_interval: 5m
       repeat_interval: 12h
-      receiver: 'default'
+      receiver: 'discord'
 
+      routes:
+        - matchers:
+            - severity = critical
+          receiver: 'discord'
+          repeat_interval: 1h
+          continue: false
+
+        - matchers:
+            - severity = warning
+          receiver: 'discord'
+          repeat_interval: 4h
+          continue: false
+
+    # -------------------------------------------------------
+    # Inhibition rules — prevent alert storms
+    # -------------------------------------------------------
+    inhibit_rules:
+      - source_matchers:
+          - alertname = NodeNotReady
+        target_matchers:
+          - alertname =~ "Pod.*|Deployment.*"
+        equal: ['node']
+
+      - source_matchers:
+          - alertname = DeploymentOffline
+        target_matchers:
+          - alertname = DeploymentReplicasMismatch
+        equal: ['namespace', 'deployment']
+
+      - source_matchers:
+          - alertname = PodCrashLooping
+        target_matchers:
+          - alertname = PodNotReady
+        equal: ['namespace', 'pod']
+
+    # -------------------------------------------------------
+    # Receivers
+    # -------------------------------------------------------
     receivers:
-    - name: 'default'
-      # Placeholder for future integration (Slack/Email)
+      - name: 'discord'
+        webhook_configs:
+          - url: 'file:///etc/alertmanager/secrets/url'
+            send_resolved: true

@@ -42,9 +42,15 @@ spec:
           mountPath: /etc/alertmanager
         - name: storage
           mountPath: /alertmanager
+        - name: discord-webhook
+          mountPath: /etc/alertmanager/secrets
+          readOnly: true
       volumes:
       - name: config
         configMap:
           name: alertmanager-config
       - name: storage
         emptyDir: {}
+      - name: discord-webhook
+        secret:
+          secretName: discord-webhook
