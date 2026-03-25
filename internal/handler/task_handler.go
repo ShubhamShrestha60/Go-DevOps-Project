@@ -72,7 +72,7 @@ func (h *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(task)
+	_ = json.NewEncoder(w).Encode(task)
 }
 
 // List godoc
@@ -119,7 +119,7 @@ func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(tasks)
+	_ = json.NewEncoder(w).Encode(tasks)
 }
 
 // Get godoc
@@ -145,7 +145,7 @@ func (h *TaskHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(task)
+	_ = json.NewEncoder(w).Encode(task)
 }
 
 // Update godoc
