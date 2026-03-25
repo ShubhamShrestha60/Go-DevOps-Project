@@ -11,6 +11,12 @@ data:
       external_labels:
         cluster: production
 
+    alerting:
+      alertmanagers:
+      - static_configs:
+        - targets:
+          - alertmanager.monitoring.svc:9093
+
     rule_files:
       - /etc/prometheus/rules/*.yaml
 
