@@ -8,7 +8,7 @@ image:
   repository: shubhamshrestha/go-devops-project-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "sha-2a1b050"
+  tag: "sha-bb8ab7c"
 
 service:
   type: ClusterIP
