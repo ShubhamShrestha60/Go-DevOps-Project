@@ -7,6 +7,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: write
+
 jobs:
   lint-and-test:
     name: Lint and Test
@@ -115,3 +118,28 @@ jobs:
 
       - name: Lint Helm Chart
         run: helm lint helm/charts/devpulse
+
+  deploy-gitops:
+    name: Update GitOps Manifests
+    needs: [docker-delivery, helm-verification]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update Image Tag in Helm Values
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          sed -i "s/tag: .*/tag: \"sha-${SHORT_SHA}\"/" helm/charts/devpulse/values.yaml
+
+      - name: Commit and Push Changes
+        run: |
+          git add helm/charts/devpulse/values.yaml
+          git commit -m "[AUTO] Update image tag to sha-$(echo ${{ github.sha }} | cut -c1-7)" || echo "No changes to commit"
+          git push
