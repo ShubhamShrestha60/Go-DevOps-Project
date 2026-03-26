@@ -9,3 +9,15 @@ variable "monitoring_namespace" {
   type        = string
   default     = "monitoring"
 }
+
+variable "argocd_namespace" {
+  description = "Namespace for ArgoCD"
+  type        = string
+  default     = "argocd"
+}
+
+variable "github_repo_url" {
+  description = "The URL of the GitHub repository"
+  type        = string
+  default     = "https://github.com/ShubhamShrestha60/Go-DevOps-Project.git"
+}

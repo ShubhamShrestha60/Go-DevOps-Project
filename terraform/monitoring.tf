@@ -31,3 +31,25 @@ resource "kubernetes_config_map_v1" "loki_config" {
 
 # Note: In a full migration, we would use 'helm_release' for the actual apps.
 # For now, we are providing the infrastructure skeleton.
+
+# This Secret is now managed by Terraform as a placeholder.
+# The actual value is manually applied and ignored by ArgoCD.
+resource "kubernetes_secret_v1" "discord_webhook" {
+  metadata {
+    name      = "discord-webhook"
+    namespace = kubernetes_namespace_v1.monitoring.metadata[0].name
+    labels    = local.common_labels
+  }
+
+  type = "Opaque"
+  
+  # We provide a dummy value; Terraform manages the existence,
+  # but ArgoCD is configured to ignore the difference so manual updates stick.
+  data = {
+    url = "https://discord.com/api/webhooks/PLACEHOLDER"
+  }
+
+  lifecycle {
+    ignore_changes = [data]
+  }
+}
