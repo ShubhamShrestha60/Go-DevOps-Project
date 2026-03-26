@@ -58,6 +58,6 @@ data:
     # -------------------------------------------------------
     receivers:
       - name: 'discord'
-        webhook_configs:
-          - url_file: /etc/alertmanager/secrets/url
+        discord_configs:
+          - webhook_url_file: /etc/alertmanager/secrets/url
             send_resolved: true
