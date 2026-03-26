@@ -12,8 +12,6 @@
 - **Clean Architecture**: Idiomatic Go with Repository pattern and Service layer.
 - **Visual Excellence**: Premium Glassmorphic UI with dynamic charts and recent activity feeds.
 - **GitOps Orchestration**: Fully automated delivery via **ArgoCD** with self-healing.
-- **Platforms as Code**: Infrastructure bootstrapped via **Terraform**.
-- **Observability**: Complete **LPL stack** (Loki, Prometheus, Grafana) with Discord alerting.
 - **Security First**: Multi-stage builds, Trivy vulnerability scanning, and RBAC-hardened monitoring.
 
 ## 🏗️ Technical Architecture
@@ -41,7 +39,6 @@ graph TD
 
     subgraph Cluster ["☸️ K3s Production Cluster"]
         subgraph Orchestration ["🏗️ Orchestration"]
-            TF[Terraform]
             ACD((ArgoCD))
         end
 
@@ -68,7 +65,6 @@ graph TD
     %% Workflow Connections
     GH --> GA --> TRV --> DH
     SYNC -- "Updates Manifests" --> GH
-    TF -- "Bootstraps" --> ACD
     ACD -- "Watches" --> GH
     ACD -- "Synchronizes" --> Core_App
     ACD -- "Synchronizes" --> Observability
@@ -85,7 +81,7 @@ graph TD
 
 **Backend**: Go 1.22 (Chi, pgx, zap, JWT)  
 **Database**: PostgreSQL 16 (StatefulSet)  
-**Infrastructure**: Terraform, Kubernetes (k3s), Helm v3  
+**Infrastructure**: Kubernetes (k3s), Helm v3  
 **Orchestration**: ArgoCD (GitOps)  
 **Monitoring**: Prometheus, Alertmanager, Grafana, Loki, Promtail, Kube-State-Metrics  
 
@@ -136,7 +132,6 @@ graph TD
 
 This section is for explaining the technical depth of this project during interviews or peer reviews.
 
-- **Infrastructure as Code (IaC)**: Terraform bootstraps the cluster's base (ArgoCD & namespaces).
 - **GitOps Methodology**: ArgoCD acts as the primary orchestrator, ensuring zero-drift between Git and the Cluster.
 - **Observability Mastery**: A full LPL stack with active Discord alerting for both Pod failures and resource mismatches.
 - **Hardened Pipeline**: CI/CD with security scanning (Trivy) and automated image tag synchronization.
