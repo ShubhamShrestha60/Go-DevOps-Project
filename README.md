@@ -9,20 +9,85 @@
 
 ## Features
 
-- **Robust Backend**: Clean architecture with Repository pattern, JWT Auth, and Structured Logging.
-- **Premium UI**: Glassmorphic dark-theme frontend using Go Templates, Vanilla CSS, and JS.
-- **Persistent Storage**: PostgreSQL integration with automated migrations.
-- **Observability**: Prometheus metrics and health checks ready for Grafana.
-- **Cloud Native**: Multi-stage Docker builds and complete Kubernetes/Helm orchestration.
-- **CI/CD**: GitHub Actions pipeline for automated testing and containerization.
+- **Clean Architecture**: Idiomatic Go with Repository pattern and Service layer.
+- **Visual Excellence**: Premium Glassmorphic UI with dynamic charts and recent activity feeds.
+- **GitOps Orchestration**: Fully automated delivery via **ArgoCD** with self-healing.
+- **Platforms as Code**: Infrastructure bootstrapped via **Terraform**.
+- **Observability**: Complete **LPL stack** (Loki, Prometheus, Grafana) with Discord alerting.
+- **Security First**: Multi-stage builds, Trivy vulnerability scanning, and RBAC-hardened monitoring.
 
-## Tech Stack
+## 🏗️ Technical Architecture
 
-- **Go 1.22** (Chi Router, pgx, zap, JWT, bcrypt)
-- **PostgreSQL 16**
-- **Docker & Docker Compose**
-- **Kubernetes & Helm**
-- **Prometheus & Grafana**
+```mermaid
+graph TD
+    %% Styling
+    classDef external fill:#f5f5f5,stroke:#333,stroke-width:2px;
+    classDef pipeline fill:#fff4dd,stroke:#d4a017,stroke-width:2px;
+    classDef infra fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef workload fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    classDef monitoring fill:#fce4ec,stroke:#c2185b,stroke-width:2px;
+
+    subgraph External ["🌐 External"]
+        GH[GitHub Repo]
+        DH[Docker Hub]
+        DISC[Discord Space]
+    end
+
+    subgraph CI_CD ["🚀 CI/CD Pipeline (GitHub Actions)"]
+        GA[Build & Test]
+        TRV[Trivy Security Scan]
+        SYNC[Image Tag Auto-Sync]
+    end
+
+    subgraph Cluster ["☸️ K3s Production Cluster"]
+        subgraph Orchestration ["🏗️ Orchestration"]
+            TF[Terraform]
+            ACD((ArgoCD))
+        end
+
+        subgraph Observability ["📊 LPL Stack"]
+            PR[Prometheus]
+            ALM[Alertmanager]
+            GR[Grafana]
+            LK[Loki]
+        end
+
+        subgraph Core_App ["📦 Workload"]
+            APP[Go DevPulse App]
+            DB[(PostgreySQL)]
+        end
+    end
+
+    %% Component Roles
+    class GH,DH,DISC external;
+    class GA,TRV,SYNC pipeline;
+    class TF,ACD infra;
+    class APP,DB workload;
+    class PR,ALM,GR,LK monitoring;
+
+    %% Workflow Connections
+    GH --> GA --> TRV --> DH
+    SYNC -- "Updates Manifests" --> GH
+    TF -- "Bootstraps" --> ACD
+    ACD -- "Watches" --> GH
+    ACD -- "Synchronizes" --> Core_App
+    ACD -- "Synchronizes" --> Observability
+    
+    %% Logs & Metrics
+    Core_App -- "Metrics" --> PR
+    Core_App -- "Logs" --> LK
+    PR -- "Alerts" --> ALM
+    ALM -- "Notify" --> DISC
+    PR & LK -- "Visualize" --> GR
+```
+
+## 🛠️ Tech Stack
+
+**Backend**: Go 1.22 (Chi, pgx, zap, JWT)  
+**Database**: PostgreSQL 16 (StatefulSet)  
+**Infrastructure**: Terraform, Kubernetes (k3s), Helm v3  
+**Orchestration**: ArgoCD (GitOps)  
+**Monitoring**: Prometheus, Alertmanager, Grafana, Loki, Promtail, Kube-State-Metrics  
 
 ## Quick Start (Local Docker)
 
@@ -64,6 +129,17 @@
      - **Prometheus**: `http://prometheus.local`
 - **Scaling**: Test HPA by putting load on the `/api` endpoints.
 - **Monitoring**: Check the `/metrics` endpoint and set up Grafana dashboards.
+
+---
+
+## 🎙️ DevOps Presentation Guide
+
+This section is for explaining the technical depth of this project during interviews or peer reviews.
+
+- **Infrastructure as Code (IaC)**: Terraform bootstraps the cluster's base (ArgoCD & namespaces).
+- **GitOps Methodology**: ArgoCD acts as the primary orchestrator, ensuring zero-drift between Git and the Cluster.
+- **Observability Mastery**: A full LPL stack with active Discord alerting for both Pod failures and resource mismatches.
+- **Hardened Pipeline**: CI/CD with security scanning (Trivy) and automated image tag synchronization.
 
 ---
 Built for production-grade DevOps practice.
