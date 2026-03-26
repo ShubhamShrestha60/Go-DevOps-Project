@@ -20,3 +20,15 @@ Thumbs.db
 
 # Docker
 .docker_temp/
+
+# Secrets
+*secrets.yaml
+*secret.yaml
+.env
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+monitoring/discord-secret.yaml
